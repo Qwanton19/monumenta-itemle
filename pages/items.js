@@ -36,6 +36,7 @@ function getRelevantItems(data, itemData, exaltedNameList) {
             return result;
         });
     }
+    items = items.filter(name => itemData[name].base_item != 'Written Book');
     if (data.searchLore) {
         items = items.filter(name => itemData[name].lore?.toLowerCase().includes(data.searchLore.toLowerCase()))
     }
