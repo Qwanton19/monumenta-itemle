@@ -50,12 +50,6 @@
   "Spearpoint Shoot": {
     "poi": "Chanterelle Village"
   },
-  "Ancient Shadowstone": {
-    "poi": "Locum Vernantia"
-  },
-  "Cracked Pocketwatch": {
-    "poi": "Bewitched Dominion"
-  },
   "Hexblade": {
     "poi": "Coven Fortress"
   },
@@ -86,9 +80,6 @@
   "Spellbound Spearhead": {
     "poi": "Doomed Encampment"
   },
-  "Deepwrought Ruby": {
-    "poi": "Silvic Quarry"
-  },
   "Deepslate Chunk": {
     "poi": "Arx Spirensis"
   },
@@ -103,9 +94,6 @@
   },
   "Peakborn Windchime": {
     "poi": "Quelled Convent"
-  },
-  "Blade of the Sealed": {
-    "poi": "Submerged Citadel"
   },
   "Suzu of Stasis": {
     "poi": "Quelled Convent"
@@ -361,5 +349,17 @@
   },
   "Symbiosis": {
     "notes": "Bounty Reward"
+  },
+  "Accursed Stake": {
+    "poi": "Bewitched Dominion"
+  },
+  "Porphyry Shackle": {
+    "poi": "Locum Vernantia"
+  },
+  "Six-Pronged Sea Stone": {
+    "poi": "Submerged Citadel"
+  },
+  "Deep Resonant Fragment": {
+    "poi": "Silvic Quarry"
   }
 }
