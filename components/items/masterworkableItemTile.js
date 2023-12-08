@@ -11,7 +11,8 @@ function camelCase(str, upper) {
 }
 
 const maxMasterwork = {
-    "Rare": 3,
+    "Rare": 4,
+    "Artifact": 4,
     "Epic": 6
 }
 
