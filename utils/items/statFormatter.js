@@ -26,7 +26,7 @@ const categories = {
     ],
     "misc": [
         ...["second_wind", "inferno", "regicide", "aptitude", "triage", "trivium", "looting",
-            "ice_aspect", "fire_aspect", "thunder_aspect", "wind_aspect", "earth_aspect"]
+            "ice_aspect", "fire_aspect", "thunder_aspect", "wind_aspect", "earth_aspect","reverb"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT })),
         ...["intuition", "weightless", "radiant", "darksight", "void_tether", "resurrection", "infinity"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))
@@ -76,7 +76,7 @@ const categories = {
     ],
     "other_curse": [
         ...["ineptitude", "curse_of_shrapnel", "curse_of_vanishing", "projectile_fragility", "melee_fragility",
-            "magic_fragility", "blast_fragility", "fire_fragility", "starvation"]
+            "magic_fragility", "blast_fragility", "fire_fragility", "starvation","curse_of_instability"]
             .map(entry => ({ name: entry, format: Formats.CURSE })),
         ...["two_handed", "curse_of_corruption", "curse_of_irreparability", "cumbersome"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_CURSE }))
