@@ -102,7 +102,7 @@ class Stats {
         let attackSpeed = (this.sumNumberStat(this.itemStats.mainhand, "attack_speed_base", this.attackSpeed) + this.attackSpeedFlatBonus) * this.attackSpeedPercent.val;
         this.attackSpeedPercent = this.attackSpeedPercent.toFixedPerc(2);
         this.attackSpeed = attackSpeed.toFixed(2);
-        let attackDamageCrit = (attackDamage * 1.5)
+        let attackDamageCrit = this.cumbersome ? attackDamage : (attackDamage * 1.5)
         this.attackDamageCrit = attackDamageCrit.toFixed(2);
         this.iframeDPS = ((attackSpeed >= 2) ? attackDamage * 2 : attackDamage * attackSpeed).toFixed(2);
         this.iframeCritDPS = ((attackSpeed >= 2) ? attackDamageCrit * 2 : attackDamageCrit * attackSpeed).toFixed(2);
@@ -498,6 +498,7 @@ class Stats {
 
         this.twoHanded = (this.itemStats.mainhand && this.itemStats.mainhand["two_handed"] == 1) ? true : false;
         this.weightless = (this.itemStats.offhand && this.itemStats.offhand["weightless"] == 1) ? true : false;
+        this.cumbersome = (this.itemStats.mainhand && this.itemStats.mainhand["cumbersome"] == 1) ? true : false;
     }
 }
 

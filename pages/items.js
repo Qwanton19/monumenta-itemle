@@ -208,8 +208,21 @@ export default function Items({ itemData }) {
 export async function getServerSideProps(context) {
     let itemData = null;
     if (AuthProvider.isUsingApi()) {
-        const response = await Axios.get(AuthProvider.getApiPath(), {headers: {'Authorization': AuthProvider.getAuthorizationData()}});
-        itemData = response.data;
+        await Axios.get(AuthProvider.getApiPath(), {headers: {'Authorization': AuthProvider.getAuthorizationData()}})
+            .then(response => {
+                itemData = response.data;
+            })
+            .catch(async (error) => {
+                console.error("Fetch from Monumenta API failed. Attemtping to fetch from U5B's Github.");
+                await Axios.get("https://raw.githubusercontent.com/U5B/Monumenta/main/out/item.json")
+                    .then(response => {
+                        itemData = response.data;
+                    })
+                    .catch(async (error) => {
+                        console.error("Fetch from U5B's Github failed. Falling back to stored items json.");
+                        itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
+                    })
+            })
     } else {
         itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
     }
