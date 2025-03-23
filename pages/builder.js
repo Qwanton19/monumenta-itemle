@@ -273,6 +273,17 @@ export async function getServerSideProps(context) {
                 delete itemData[item];
             }
         }
+        switch (itemStats.location){
+          case "Skr":
+            itemData[item].location = "Silver Knight's Remnants";
+            break;
+          case "SKT":
+            itemData[item].location = "Silver Knight's Tomb";
+            break;
+          case "Overworld3":
+            itemData[item].location = "Architect's Ring Overworld";
+            break;
+        }
     }
 
     return {

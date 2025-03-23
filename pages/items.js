@@ -45,27 +45,27 @@ function getRelevantItems(data, itemData, exaltedNameList) {
     if (wantedItemTypes.length > 0) {
         items = items.filter(name => wantedItemTypes.includes(itemData[name].type));
     }
-    
+
     let wantedRegions = extractFilterValues(data, "regionSelect");
     if (wantedRegions.length > 0) {
         items = items.filter(name => wantedRegions.includes(itemData[name].region));
     }
-    
+
     let wantedTiers = extractFilterValues(data, "tierSelect");
     if (wantedTiers.length > 0) {
         items = items.filter(name => wantedTiers.includes(itemData[name].tier));
     }
-    
+
     let wantedLocations = extractFilterValues(data, "locationSelect");
     if (wantedLocations.length > 0) {
         items = items.filter(name => wantedLocations.includes(itemData[name].location));
     }
-    
+
     let wantedPois = extractFilterValues(data, "poiSelect");
     if (wantedPois.length > 0) {
         items = items.filter(name => itemData[name].extras?.poi && wantedPois.includes(itemData[name].extras.poi));
     }
-    
+
     let wantedClasses = extractFilterValues(data, "classSelect");
     if (wantedClasses.length > 0) {
         items = items.filter(name => wantedClasses.includes(itemData[name].class_name));
@@ -171,7 +171,7 @@ export default function Items({ itemData }) {
                         <TranslatableText identifier="items.searchForm.itemsFound"></TranslatableText> {relevantItems.length}
                     </h4> : ""
                 }
-                
+
                 <InfiniteScroll
                     className={styles.itemsContainer}
                     dataLength={itemsToShow}
@@ -249,6 +249,21 @@ export async function getServerSideProps(context) {
                 delete itemData[item];
             }
         }
+        if(itemStats.location == "Skr"){
+          itemData[item].location = "Silver Knight's Remnants";
+        }
+        switch (itemStats.location){
+          case "Skr":
+            itemData[item].location = "Silver Knight's Remnants";
+            break;
+          case "SKT":
+            itemData[item].location = "Silver Knight's Tomb";
+            break;
+          case "Overworld3":
+            itemData[item].location = "Architect's Ring Overworld";
+            break;
+        }
+
     }
 
     return {
