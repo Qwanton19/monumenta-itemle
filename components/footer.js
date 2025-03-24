@@ -7,10 +7,10 @@ export default function Footer() {
     return (
         <footer className={styles.footer}>
             <div>
-                Developed by <b>Albin#3246</b> and <b>FlamingoBike#6228</b>
+                Developed by <b>Albin#3246</b> and <b>FlamingoBike#6228</b>, forked and maintained by <b>Alecaboo</b>
             </div>
             <a
-                href="https://github.com/albarv340/ohthemisery"
+                href="https://github.com/Alecaboo/ohthemisery"
                 target="_blank"
                 rel="noopener noreferrer"
             >
