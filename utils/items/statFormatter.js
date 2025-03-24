@@ -21,7 +21,7 @@ const categories = {
     ],
     "melee": [
         ...["sweeping_edge", "knockback", "quake", "smite", "slayer", "duelist", "chaotic",
-            "hex_eater", "decay", "bleeding", "stamina", "first_strike", "technique", "reverb"]
+            "hex_eater", "decay", "bleeding", "stamina", "first_strike", "technique", "reverb","impact"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT }))
     ],
     "misc": [
@@ -60,12 +60,12 @@ const categories = {
     "epic": [
         ...["arcane_thrust", "worldly_protection"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT })),
-        ...["ashes_of_eternity", "rage_of_the_keter", "liquid_courage", "temporal_bender", "intoxicating_warmth"]
+        ...["ashes_of_eternity", "rage_of_the_keter", "liquid_courage", "temporal_bender", "intoxicating_warmth","retaliation"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))
     ],
     "ranged": [
         ...["quick_charge", "point_blank", "sniper", "multishot", "piercing", "retrieval",
-            "punch", "recoil", "explosive", "multiload"]
+            "punch", "recoil", "explosive", "multi-load"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT }))
     ],
     "specialist": [
