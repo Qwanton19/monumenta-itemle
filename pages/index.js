@@ -9,15 +9,15 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Oh the Misery</title>
+        <title>Ode to Misery</title>
         <meta property="og:image" content="/favicon.ico" />
-        <meta name="description" content="Website of the Monumenta guild [ENEMY] Oh the Misery" />
+        <meta name="description" content="Ode to OhtheMisery" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          Oh the Misery
+          Ode to Misery
         </h1>
         <div className={styles.grid}>
           <Link href="/items" className={styles.card}>
