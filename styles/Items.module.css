@@ -502,16 +502,22 @@
 .hunts{
   color:#4c5b14
 }
-.hunt{
-  color:#4c5b14
-}
-.hunts{
-  color:#4c5b14
-}
-.diameneanHunts{
-  color:#4c5b14
-}
 
+.zenith{
+  color:#fca4f4
+}
+.starpoint{
+  color:#3c2c74
+}
+.sirius{
+  color:#2cd4c4
+}
+.fishing{
+  color:#acd4d4
+}
+.marinaNoir{
+  color:#37485a
+}
 
 .exalted {
     display: inline-block;

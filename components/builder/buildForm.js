@@ -54,7 +54,7 @@ function groupMasterwork(items, itemData) {
             items.splice(i, 1);
         }
     }
-    
+
     // Re-insert the groups as arrays into the items array.
     Object.keys(masterworkItems).forEach(item => {
         items.push({ value: `${item}-${masterworkItems[item][0].masterwork}`, label: item });
@@ -168,7 +168,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
         let mainhands = ["mainhand", "mainhand sword", "mainhand shield", "axe", "pickaxe", "wand", "scythe", "bow", "crossbow", "snowball", "trident"];
         let offhands = ["offhand", "offhand shield", "offhand sword"];
         let actualItemType = (mainhands.includes(itemType.toLowerCase())) ? "mainhand" : (offhands.includes(itemType.toLowerCase())) ? "offhand" : itemType.toLowerCase();
-        
+
         const manualBuildString = encodeURI(decodeURI(makeBuildString()).replace(newBuild[actualItemType.toLowerCase()], `${newActiveItem.name}-${newActiveItem.masterwork}`));
         newBuild[actualItemType.toLowerCase()] = `${newActiveItem.name}-${newActiveItem.masterwork}`;
         itemRefs[actualItemType.toLowerCase()].current.setValue({ "value": `${newActiveItem.name}-${newActiveItem.masterwork}`, "label": newActiveItem.name });
@@ -321,23 +321,23 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Tenacity</p>
-                    <input type="number" name="tenacity" min="0" max="24" defaultValue="0" className="" />
+                    <input type="number" name="tenacity" min="0" max="30" defaultValue="0" className="" />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Vitality</p>
-                    <input type="number" name="vitality" min="0" max="24" defaultValue="0" className="" />
+                    <input type="number" name="vitality" min="0" max="30" defaultValue="0" className="" />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Vigor</p>
-                    <input type="number" name="vigor" min="0" max="24" defaultValue="0" className="" />
+                    <input type="number" name="vigor" min="0" max="30" defaultValue="0" className="" />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Focus</p>
-                    <input type="number" name="focus" min="0" max="24" defaultValue="0" className="" />
+                    <input type="number" name="focus" min="0" max="30" defaultValue="0" className="" />
                 </div>
                 <div className="col text-center">
                     <p className="mb-1">Perspicacity</p>
-                    <input type="number" name="perspicacity" min="0" max="24" defaultValue="0" className="" />
+                    <input type="number" name="perspicacity" min="0" max="30" defaultValue="0" className="" />
                 </div>
             </div>
             <div className="row pt-2">

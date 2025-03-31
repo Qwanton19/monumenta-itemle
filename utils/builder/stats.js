@@ -16,7 +16,7 @@ class Stats {
 
         this.fullItemData = {};
         types.forEach(type => {
-            this.fullItemData[type] = (this.itemNames[type] != "None") ? 
+            this.fullItemData[type] = (this.itemNames[type] != "None") ?
                 (itemData[this.itemNames[type]]) ? itemData[this.itemNames[type]] : {masterwork: 0} : {masterwork: 0};
         });
 
@@ -92,9 +92,10 @@ class Stats {
         }
 
         // Melee Stats
+        this.attackDamagePercent.add(1.5 * Number(this.vigor));
         let attackDamage = this.sumNumberStat(this.itemStats.mainhand, "attack_damage_base", this.attackDamage)
             * this.attackDamagePercent.val
-            * (1 + 0.0075 * Number(this.vigor))
+            //* (1 + 0.0075 * Number(this.vigor))
             * ((this.currentHealthPercent.perc <= 50) ? 1 - 0.1 * this.crippling : 1)
             * this.extraDamageMultiplier;
         this.attackDamagePercent = this.attackDamagePercent.toFixedPerc(2);
@@ -108,9 +109,9 @@ class Stats {
         this.iframeCritDPS = ((attackSpeed >= 2) ? attackDamageCrit * 2 : attackDamageCrit * attackSpeed).toFixed(2);
 
         // Projectile Stats
+        this.projectileDamagePercent.add(1.5*Number(this.focus));
         let projectileDamage = this.sumNumberStat(this.itemStats.mainhand, "projectile_damage_base", this.projectileDamage)
             * this.projectileDamagePercent.val
-            * (1 + 0.0075 * Number(this.focus))
             * this.extraDamageMultiplier;
         this.projectileDamagePercent = this.projectileDamagePercent.toFixedPerc(2);
         this.projectileDamage = projectileDamage.toFixed(2);
@@ -123,10 +124,10 @@ class Stats {
 
         // Magic Stats
         this.spellPowerPercent.add(this.sumNumberStat(this.itemStats.mainhand, "spell_power_base", 0));
+        this.magicDamagePercent.add(1.5*Number(this.perspicacity));
         this.spellDamage = (
             this.spellPowerPercent.duplicate()
                 .mulP(this.magicDamagePercent)
-                .mul(1 + 0.0075 * Number(this.perspicacity), false)
                 .mul(this.extraDamageMultiplier, false)
         ).toFixedPerc(2);
         this.spellPowerPercent = this.spellPowerPercent.toFixedPerc(2);
@@ -194,7 +195,7 @@ class Stats {
         damageTaken.base = damageTaken.base
             * (1 - (this.tenacity * 0.005))
             * (this.extraResistanceMultiplier.val);
-        
+
         damageTaken.secondwind = damageTaken.secondwind
             * (1 - (this.tenacity * 0.005))
             * (this.extraResistanceMultiplier.val);
