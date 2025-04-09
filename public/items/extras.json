@@ -469,5 +469,161 @@
   },
   "Astral Attractor": {
     "poi": "The Nadir"
+  },
+  "Serebrian Wristblade": {
+    "notes": "Bounty Reward"
+  },
+  "Darkstar Pauldron": {
+    "notes": "Bounty Reward"
+  },
+  "Bismuth Mask": {
+    "notes": "Bounty Reward"
+  },
+  "Eclipse Stream": {
+    "notes": "Bounty Reward"
+  },
+  "Vain Star": {
+    "notes": "Bounty Reward"
+  },
+  "Matted Gorefur": {
+    "notes": "Bounty Reward"
+  },
+  "Memory of the Star": {
+    "notes": "Bounty Reward"
+  },
+  "Footprints Beneath Void": {
+    "notes": "Bounty Reward"
+  },
+  "Chaos Codex": {
+    "notes": "The trader is Augre, in Star Point at [-30, 126, 1307], nearest the Austrus bell."
+  },
+  "Crucus Gauntlet": {
+    "notes": "The trader is Augre, in Star Point at [-30, 126, 1307], nearest the Austrus bell."
+  },
+  "Callicarpa Compound": {
+    "notes": "The trader is Augre, in Star Point at [-30, 126, 1307], nearest the Austrus bell."
+  },
+  "Final Herald's Lifeblood": {
+    "notes": "The trader is Namtar, outside the fast-travel to Sirius' arena."
+  },
+  "Bottled Font of Tuulen": {
+    "notes": "The trader is Namtar, outside the fast-travel to Sirius' arena."
+  },
+  "Lunacrestum Pulsar": {
+    "notes": "The trader is Namtar, outside the fast-travel to Sirius' arena."
+  },
+  "Starblood Ichor": {
+    "notes": "The trader is within the Celestial Zenith, at the top of the 'Escher room' Floor 3 Elite room."
+  },
+  "Bryophyte Roots": {
+    "notes": "Ru'Ten Artifact"
+  },
+  "Effulgent Fragment": {
+    "notes": "Ru'Ten Artifact"
+  },
+  "Nature's Failure": {
+    "notes": "Ru'Ten Artifact"
+  },
+  "The Knucklebones": {
+    "notes": "Ru'Ten Artifact"
+  },
+  "Poisoned Wisteria": {
+    "notes": "Ru'Ten Artifact"
+  },
+  "Loci Carving": {
+    "notes": "Ru'Ten Artifact"
+  },
+  "Frenzied Earth": {
+    "notes": "Ru'Ten Artifact"
+  },
+  "Amberlight Seed": {
+    "notes": "Ru'Ten Artifact"
+  },
+  "Greaves of Sunken Faith": {
+    "notes": "Hycenea Artifact"
+  },
+  "Agaric Abhorrence": {
+    "notes": "Hycenea Artifact"
+  },
+  "Hexcrafted Barrier": {
+    "notes": "Hycenea Artifact"
+  },
+  "Last Respects": {
+    "notes": "Hycenea Artifact"
+  },
+  "Emerald Ascension": {
+    "notes": "Hycenea Artifact"
+  },
+  "Leyline Conduit": {
+    "notes": "Hycenea Artifact"
+  },
+  "Coven Amulet": {
+    "notes": "Hycenea Artifact"
+  },
+  "Vires Terrae": {
+    "notes": "Hycenea Artifact"
+  },
+  "Covenmourn Rend": {
+    "notes": "The trader is The Vedha, Repentant, found in the garden in the Chantry of Repentance after completing Hexfall."
+  },
+  "Portable Gatecharm": {
+    "notes": "The trader is the Pumpkin Effigy in the Star Point tunnels, at [60 106 935]."
+  },
+  "Bewitching Lantern": {
+    "notes": "The trader is Calix, within Hexfall. After completing the instance, retrieve an Opal from Haunted Mines POI in the Valley, follow the tunnel at [316 98 367] in Hexfall, and drop the Opal on the enchanting table at the end to summon the epic trader."
+  },
+  "Lifewood Dew": {
+    "notes": "The trader is Calix, within Hexfall. After completing the instance, retrieve an Opal from Haunted Mines POI in the Valley, follow the tunnel at [316 98 367] in Hexfall, and drop the Opal on the enchanting table at the end to summon the epic trader."
+  },
+  "Ironwood Vambrace": {
+    "notes": "The trader is Calix, within Hexfall. After completing the instance, retrieve an Opal from Haunted Mines POI in the Valley, follow the tunnel at [316 98 367] in Hexfall, and drop the Opal on the enchanting table at the end to summon the epic trader."
+  },
+  "Briar of Binding": {
+    "notes": "The trader is Calix, within Hexfall. After completing the instance, retrieve an Opal from Haunted Mines POI in the Valley, follow the tunnel at [316 98 367] in Hexfall, and drop the Opal on the enchanting table at the end to summon the epic trader."
+  },
+  "Guillotine Wings": {
+    "notes": "Hunt: Steel Wing Hawk"
+  },
+  "Mire's Influence": {
+    "notes": "Hunt: Experiment Seventy-One"
+  },
+  "Piercing Steel": {
+    "notes": "Hunt: Steel Wing Hawk"
+  },
+  "Cloak of Immortals": {
+    "notes": "Hunt: The Impenetrable"
+  },
+  "Ignistone Cluster": {
+    "notes": "Hunt: Core Elemental"
+  },
+  "Pyroclastic Emesis": {
+    "notes": "Hunt: Core Elemental"
+  },
+  "Hailstorm Pelt": {
+    "notes": "Hunt: Aloc Acoc"
+  },
+  "Stonebearer Toxin": {
+    "notes": "Hunt: Uamiel"
+  },
+  "Extinction": {
+    "notes": "Hunt: Experiment Seventy-One"
+  },
+  "The Statue": {
+    "notes": "Hunt: Uamiel"
+  },
+  "Indomitable Prism": {
+    "notes": "Hunt: The Impenetrable"
+  },
+  "Titanic Hailstone": {
+    "notes": "Hunt: Aloc Acoc"
+  },
+  "Chimera's Grace": {
+    "notes": "The trader is Mellini on the second floor of the Lodge, after beating all six bosses unspoiled."
+  },
+  "Argentum Arbitrium": {
+    "notes": "Special Item"
+  },
+  "Oneiro Mavros": {
+    "notes": "Special Item"
   }
 }
