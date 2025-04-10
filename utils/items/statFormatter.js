@@ -21,15 +21,14 @@ const categories = {
     ],
     "melee": [
         ...["sweeping_edge", "knockback", "quake", "smite", "slayer", "duelist", "chaotic",
-            "hex_eater", "decay", "bleeding", "stamina", "first_strike", "technique", "reverb","impact"]
+            "hex_eater", "decay", "bleeding", "stamina", "first_strike", "technique", "reverb", "impact"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT }))
     ],
     "misc": [
         ...["second_wind", "inferno", "regicide", "aptitude", "triage", "trivium", "looting",
             "ice_aspect", "fire_aspect", "thunder_aspect", "wind_aspect", "earth_aspect"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT })),
-        ...["intuition", "weightless", "radiant", "darksight", "void_tether", "resurrection", "infinity", "clucking",
-            "baaing", "oinking"]
+        ...["intuition", "weightless", "radiant", "darksight", "void_tether", "resurrection", "infinity"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))
     ],
     "prot": [
@@ -60,13 +59,15 @@ const categories = {
     "epic": [
         ...["arcane_thrust", "worldly_protection"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT })),
-        ...["ashes_of_eternity", "rage_of_the_keter", "liquid_courage", "temporal_bender", "intoxicating_warmth","retaliation"]
+        ...["ashes_of_eternity", "rage_of_the_keter", "liquid_courage", "temporal_bender", "intoxicating_warmth", "retaliation"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))
     ],
     "ranged": [
-        ...["quick_charge", "point_blank", "sniper", "multishot", "piercing", "retrieval",
+        ...["quick_charge", "point_blank", "sniper", "piercing", "retrieval",
             "punch", "recoil", "explosive", "multi-load"]
-            .map(entry => ({ name: entry, format: Formats.ENCHANT }))
+            .map(entry => ({ name: entry, format: Formats.ENCHANT })),
+        ...["multishot"]
+            .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))
     ],
     "specialist": [
         ...["shielding", "poise", "inure", "steadfast", "ethereal", "reflexes", "evasion", "tempo",
@@ -77,9 +78,10 @@ const categories = {
     ],
     "other_curse": [
         ...["ineptitude", "curse_of_shrapnel", "curse_of_vanishing", "projectile_fragility", "melee_fragility",
-            "magic_fragility", "blast_fragility", "fire_fragility", "starvation"]
+            "magic_fragility", "blast_fragility", "fire_fragility", "starvation", "curse_of_the_veil"]
             .map(entry => ({ name: entry, format: Formats.CURSE })),
-        ...["two_handed", "curse_of_corruption", "curse_of_irreparability", "curse_of_instability", "cumbersome"]
+        ...["two_handed", "curse_of_corruption", "curse_of_irreparability", "curse_of_instability", "cumbersome", "clucking",
+            "baaing", "oinking", "curse_of_ephemerality"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_CURSE }))
     ],
     "water": [
@@ -120,6 +122,9 @@ class StatFormatter {
             .filter(part => (part != "m" && part != "p" && part != "bow" && part != "tool"))
             .map(part => part[0].toUpperCase() + part.substring(1))
             .join(" ");
+        humanStr = humanStr.replace(" Of ", " of "); // curses, ashes, rage of the keter
+        humanStr = humanStr.replace(" The ", " the "); // rage of the keter, curse of the veil
+        humanStr = humanStr.replace("Jungles", "Jungle's"); // kapple
         switch (stat.format) {
             case Formats.ENCHANT: {
                 humanStr = `${humanStr} ${value}`;

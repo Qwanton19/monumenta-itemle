@@ -115,7 +115,7 @@ export default function Builder({ build, itemData }) {
         <div className="container-fluid">
             <Head>
                 <title>Monumenta Builder</title>
-                <meta property="og:site_name" content="OHTHEMISERY.TK" />
+                <meta property="og:site_name" content="ODE TO MISERY" />
                 <meta property="og:image" content="/favicon.ico" />
                 <meta name="description" content={`${getLinkPreviewDescription(build, itemData)}`} />
                 <meta name="keywords" content="Monumenta, Minecraft, MMORPG, Items, Builder" />
