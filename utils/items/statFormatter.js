@@ -63,9 +63,11 @@ const categories = {
             .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))
     ],
     "ranged": [
-        ...["quick_charge", "point_blank", "sniper", "multishot", "piercing", "retrieval",
+        ...["quick_charge", "point_blank", "sniper", "piercing", "retrieval",
             "punch", "recoil", "explosive", "multi-load"]
-            .map(entry => ({ name: entry, format: Formats.ENCHANT }))
+            .map(entry => ({ name: entry, format: Formats.ENCHANT })),
+        ...["multishot"]
+            .map(entry => ({ name: entry, format: Formats.SINGLE_ENCHANT }))
     ],
     "specialist": [
         ...["shielding", "poise", "inure", "steadfast", "ethereal", "reflexes", "evasion", "tempo",
@@ -79,7 +81,7 @@ const categories = {
             "magic_fragility", "blast_fragility", "fire_fragility", "starvation", "curse_of_the_veil"]
             .map(entry => ({ name: entry, format: Formats.CURSE })),
         ...["two_handed", "curse_of_corruption", "curse_of_irreparability", "curse_of_instability", "cumbersome", "clucking",
-            "baaing", "oinking"]
+            "baaing", "oinking", "curse_of_ephemerality"]
             .map(entry => ({ name: entry, format: Formats.SINGLE_CURSE }))
     ],
     "water": [
