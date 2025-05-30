@@ -50,6 +50,34 @@ function getRelevantItems(data, itemData, exaltedNameList) {
     if (wantedRegions.length > 0) {
         items = items.filter(name => wantedRegions.includes(itemData[name].region));
     }
+    let wantedEffects = extractFilterValues(data, "effectSelect");
+
+    function toCamelCase(str) {
+      return str
+        .toLowerCase()
+        .split(" ")
+        .map((word, i) =>
+          i === 0
+            ? word
+            : word.charAt(0).toUpperCase() + word.slice(1)
+        )
+        .join("");
+    }
+
+    if (wantedEffects.length > 0) {
+      const wantedEffectKeys = wantedEffects.map(toCamelCase);
+
+      items = items.filter(name =>
+        itemData[name].effects &&
+        wantedEffectKeys.some(wantedKey =>
+          itemData[name].effects.some(effectObj =>
+            // Normalize to lowercase to avoid case mismatch
+            effectObj.EffectType.toLowerCase() === wantedKey.toLowerCase()
+          )
+        )
+      );
+    }
+
 
     let wantedTiers = extractFilterValues(data, "tierSelect");
     if (wantedTiers.length > 0) {
