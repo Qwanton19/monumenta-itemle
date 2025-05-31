@@ -112,7 +112,7 @@ class Stats {
         this.attackDamageCrit = attackDamageCrit.toFixed(2);
         this.iframeDPS = ((attackSpeed >= 2) ? attackDamage * 2 : attackDamage * attackSpeed).toFixed(2);
         this.iframeCritDPS = ((attackSpeed >= 2) ? attackDamageCrit * 2 : attackDamageCrit * attackSpeed).toFixed(2);
-        let attackCritSpeed = 1.67;
+        let attackCritSpeed = 5/3;
         if (this.attackSpeed < attackCritSpeed){
           attackCritSpeed = this.attackSpeed;
         }
@@ -140,8 +140,13 @@ class Stats {
                 .mulP(this.magicDamagePercent)
                 .mul(this.extraDamageMultiplier, false)
         ).toFixedPerc(2);
+        let potionDamage = this.sumNumberStat(this.itemStats.mainhand, "potion_damage_flat", this.magicDamage)
+            * this.magicDamagePercent.val
+            * this.extraDamageMultiplier;
+        this.potionDamage = potionDamage;
         this.spellPowerPercent = this.spellPowerPercent.toFixedPerc(2);
         this.magicDamagePercent = this.magicDamagePercent.toFixedPerc(2);
+
         this.spellCooldownPercent = this.spellCooldownPercent
             .mul(Math.pow(0.95, this.aptitude + this.ineptitude), false)
             .toFixedPerc(2);
@@ -502,6 +507,7 @@ class Stats {
         this.spellPowerPercent = new Percentage(100),
         this.spellDamage = new Percentage(100),
         this.spellCooldownPercent = new Percentage(100),
+        this.potionDamage = 1,
 
         this.aptitude = 0,
         this.ineptitude = 0,

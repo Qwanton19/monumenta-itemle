@@ -2,6 +2,7 @@ import styles from '../../styles/Items.module.css';
 
 const nameMappings = {
     "Vanilla Fire Res": "Fire Immunity",
+    "damage": "Damage"
 };
 
 const oneLevelEffects = ["Fire Immunity", "Night Vision", "Nausea"];
