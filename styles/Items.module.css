@@ -153,55 +153,55 @@
     color: #fc5454;
 }
 
-.hallsOfWindAndBlood {
+.white {
     color: #FCFCFC;
 }
 
-.fallenMenagerie {
+.orange {
     color: #FCA800;
 }
 
-.plaguerootTemple {
+.magenta {
     color: #FC54FC;
 }
 
-.arcaneRivalry {
+.lightBlue {
     color: #49C0E2;
 }
 
-.vernalNightmare {
+.yellow {
     color: #FCFC54;
 }
 
-.salazarsFolly {
+.lime {
     color: #54FC54;
 }
 
-.harmonicArboretum {
+.pink {
     color: #FC68B2;
 }
 
-.valleyOfForgottenPharoahs {
+.gray {
     color: #545454;
 }
 
-.palaceOfMirrors {
+.lightGray {
     color: #A8A8A8;
 }
 
-.theScourgeOfLunacy {
+.cyan {
     color: #00A8A8;
 }
 
-.theGraspOfAvarice {
+.purple {
     color: #A800A8;
 }
 
-.echoesOfOblivion {
+.teal {
     color: #46B4B3;
 }
 
-.cityOfShiftingWaters {
+.shifting {
     color: #7DFCD1;
 }
 
@@ -209,51 +209,51 @@
     color: #80D817;
 }
 
-.theFallenForum {
+.forum {
     color: #7E7E00;
 }
 
-.treasuresOfViridia {
+.tOV {
     color: #C6A0C6;
 }
 
-.expeditionDocks {
+.docks {
     color: #196281;
 }
 
-.floatingCarnival {
+.carnival {
     color: #CE2D27;
 }
 
-.dungeonDelves {
+.delves {
     color: #B26F27;
 }
 
-.rushOfDissonance {
+.rush {
     color: #C01E55;
 }
 
-.theHeadlessHorseman {
+.horseman {
     color: #8C3318;
 }
 
-.theBlackMist {
+.mist {
     color: #664B5A;
 }
 
-.sealedRemorse, .remorsefulSkin {
+.remorse, .remorsefulSkin {
     color: #EBE3D3;
 }
 
-.darkestDepths {
+.depths {
     color: #5C2C85;
 }
 
-.theWakingGiant, .titanicSkin {
+.eldrask, .titanicSkin {
     color: #85CCF7;
 }
 
-.hekawtsFury, .eternitySkin {
+.hekawt, .eternitySkin {
     color: #FCB23D;
 }
 
@@ -261,7 +261,7 @@
     color: #d9e5e0;
 }
 
-.masqueradersRuin {
+.ruin {
     color: #316ca6;
 }
 
@@ -269,11 +269,11 @@
     color: #4b8d4c;
 }
 
-.covensGambit {
+.blue {
     color: #0c2ba0;
 }
 
-.cradleOfTheBrokenGod {
+.brown {
     color: #6f3508;
 }
 
@@ -301,7 +301,7 @@
     color: #fcf774;
 }
 
-.theGodsporesDomain {
+.godspore {
     color: #416a28;
 }
 
@@ -353,11 +353,11 @@
     color: rgb(255, 237, 184);
 }
 
-.monarchsCozycasino {
+.islesCasino {
     color: #1772AF;
 }
 
-.celsianIslesOverworld {
+.islesOverworld {
     color: #31D4D9;
 }
 
@@ -377,7 +377,7 @@
     color: #EAC662;
 }
 
-.kingsValleyOverworld {
+.valleyOverworld {
     color: #D9AC31;
 }
 
@@ -389,7 +389,7 @@
     color: #196281;
 }
 
-.azacorsMalice {
+.azacor {
     color: #FC6E54;
 }
 
@@ -401,31 +401,31 @@
     color: #FCA800;
 }
 
-.alchemyLabs {
+.labs {
     color: #B2AAC1;
 }
 
-.theBlackWillows, .storiedSkin {
+.willows, .storiedSkin {
     color: #006300;
 }
 
-.forswornSanctum {
+.sanctum {
     color: #51A800;
 }
 
-.malevolentReverie {
+.reverie {
     color: #780E46;
 }
 
-.ephemeralCorridors, .ephemeralEnhancements {
+.corridors, .ephemeralEnhancements {
     color: #890000;
 }
 
-.verdantRemnants {
+.verdant {
     color: #158115;
 }
 
-.kaulsJudgement {
+.kaul {
     color: #00A800;
 }
 
@@ -437,15 +437,15 @@
     color: #FCF33B;
 }
 
-.plunderersBlitz {
+.blitz {
     color: #D7AB3D;
 }
 
-.sticksAndStonesTavern {
+.ringCasino {
     color: #C4C0B4;
 }
 
-.uganda2018 {
+.uganda {
     color: #CD2D28;
 }
 
@@ -457,7 +457,7 @@
     color: #7DFCD1;
 }
 
-.valentinesEvent {
+.valentinesDay {
     color: #FF7C7F;
 }
 
@@ -503,16 +503,16 @@
   color:#4c5b14
 }
 
-.theCelestialZenith{
+.zenith{
   color:#fca4f4
 }
-.starPoint{
+.starpoint{
   color:#3c2c74
 }
-.theFinalBlight{
+.sirius{
   color:#2cd4c4
 }
-.architectsRingFishing{
+.fishing{
   color:#acd4d4
 }
 .marinaNoir{
