@@ -93,7 +93,8 @@ export default function Builder({ build, itemData }) {
         { type: "attackDamage", name: "builder.stats.melee.attackDamage", percent: false },
         { type: "attackDamageCrit", name: "builder.stats.melee.attackDamageCrit", percent: false },
         { type: "iframeDPS", name: "builder.stats.melee.iframeDps", percent: false },
-        { type: "iframeCritDPS", name: "builder.stats.melee.iframeCritDps", percent: false }
+        { type: "iframeCritDPS", name: "builder.stats.melee.iframeCritDps", percent: false },
+        { type: "critSpamDPS", name: "builder.stats.melee.critSpamDPS", percent: false}
     ];
     const projectileStats = [
         { type: "projectileDamagePercent", name: "builder.stats.projectile.projectileDamagePercent", percent: true },
@@ -107,7 +108,8 @@ export default function Builder({ build, itemData }) {
         { type: "magicDamagePercent", name: "builder.stats.magic.magicDamagePercent", percent: true },
         { type: "spellPowerPercent", name: "builder.stats.magic.spellPowerPercent", percent: true },
         { type: "spellDamage", name: "builder.stats.magic.spellDamage", percent: true },
-        { type: "spellCooldownPercent", name: "builder.stats.magic.spellCooldownPercent", percent: true }
+        { type: "spellCooldownPercent", name: "builder.stats.magic.spellCooldownPercent", percent: true },
+        { type: "potionDamage", name: "builder.stats.magic.potionDamage", percent: false}
     ];
 
 
@@ -272,7 +274,7 @@ export async function getServerSideProps(context) {
                 itemData[mwExName].name = exName;
                 delete itemData[item];
             }
-        }
+            }
         switch (itemStats.location){
           case "Skr":
             itemData[item].location = "Silver Knight's Remnants";

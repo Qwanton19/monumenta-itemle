@@ -35,7 +35,8 @@ const extraStats = {
     damageMultipliers: [],
     resistanceMultipliers: [],
     healthMultipliers: [],
-    speedMultipliers: []
+    speedMultipliers: [],
+    attackSpeedMultipliers: []
 }
 
 function groupMasterwork(items, itemData) {
@@ -256,6 +257,9 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
     function speedMultipliersChanged(newMultipliers) {
         multipliersChanged(newMultipliers, "speedMultipliers");
     }
+    function attackSpeedMultipliersChanged(newMultipliers){
+      multipliersChanged(newMultipliers,"attackSpeedMultipliers");
+    }
 
     function updateCharms(charmNames) {
         let charmData = charmNames.map(name => itemData[name]);
@@ -358,6 +362,9 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                 </div>
                 <div className="col-12 col-md-6 col-lg-2">
                     <ListSelector update={speedMultipliersChanged} translatableName="builder.multipliers.speed"></ListSelector>
+                </div>
+                <div className="col-12 col-md-6 col-lg-2">
+                    <ListSelector update={attackSpeedMultipliersChanged} translatableName="builder.multipliers.attackSpeed"></ListSelector>
                 </div>
             </div>
             <div className="row my-3">

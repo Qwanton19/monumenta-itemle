@@ -52,6 +52,7 @@ class Stats {
         this.extraDamageMultiplier = 1;
         this.extraResistanceMultiplier = new Percentage(100);
         this.extraHealthMultiplier = 1;
+        this.extraAttackSpeedMultiplier = 1;
         this.extraSpeedMultiplier = 1;
         if (extraStats) {
             if (extraStats.damageMultipliers) {
@@ -64,6 +65,10 @@ class Stats {
             }
             if (extraStats.healthMultipliers) {
                 this.extraHealthMultiplier = extraStats.healthMultipliers.map(percObject => percObject.val)
+                    .reduce((accumulator, val) => accumulator * val, 1);
+            }
+            if (extraStats.attackSpeedMultipliers) {
+                this.extraAttackSpeedMultiplier = extraStats.attackSpeedMultipliers.map(percObject => percObject.val)
                     .reduce((accumulator, val) => accumulator * val, 1);
             }
             if (extraStats.speedMultipliers) {
@@ -100,13 +105,18 @@ class Stats {
             * this.extraDamageMultiplier;
         this.attackDamagePercent = this.attackDamagePercent.toFixedPerc(2);
         this.attackDamage = attackDamage.toFixed(2);
-        let attackSpeed = (this.sumNumberStat(this.itemStats.mainhand, "attack_speed_base", this.attackSpeed) + this.attackSpeedFlatBonus) * this.attackSpeedPercent.val;
+        let attackSpeed = (this.sumNumberStat(this.itemStats.mainhand, "attack_speed_base", this.attackSpeed) + this.attackSpeedFlatBonus) * this.attackSpeedPercent.val * this.extraAttackSpeedMultiplier;
         this.attackSpeedPercent = this.attackSpeedPercent.toFixedPerc(2);
         this.attackSpeed = attackSpeed.toFixed(2);
         let attackDamageCrit = this.cumbersome ? attackDamage : (attackDamage * 1.5)
         this.attackDamageCrit = attackDamageCrit.toFixed(2);
         this.iframeDPS = ((attackSpeed >= 2) ? attackDamage * 2 : attackDamage * attackSpeed).toFixed(2);
         this.iframeCritDPS = ((attackSpeed >= 2) ? attackDamageCrit * 2 : attackDamageCrit * attackSpeed).toFixed(2);
+        let attackCritSpeed = 5/3;
+        if (this.attackSpeed < attackCritSpeed){
+          attackCritSpeed = this.attackSpeed;
+        }
+        this.critSpamDPS = (attackCritSpeed * attackDamageCrit).toFixed(2);
 
         // Projectile Stats
         this.projectileDamagePercent.add(1.5*Number(this.focus));
@@ -130,8 +140,13 @@ class Stats {
                 .mulP(this.magicDamagePercent)
                 .mul(this.extraDamageMultiplier, false)
         ).toFixedPerc(2);
+        let potionDamage = this.sumNumberStat(this.itemStats.mainhand, "potion_damage_flat", this.magicDamage)
+            * this.magicDamagePercent.val
+            * this.extraDamageMultiplier;
+        this.potionDamage = potionDamage;
         this.spellPowerPercent = this.spellPowerPercent.toFixedPerc(2);
         this.magicDamagePercent = this.magicDamagePercent.toFixedPerc(2);
+
         this.spellCooldownPercent = this.spellCooldownPercent
             .mul(Math.pow(0.95, this.aptitude + this.ineptitude), false)
             .toFixedPerc(2);
@@ -479,6 +494,7 @@ class Stats {
         this.attackDamageCrit = 1.5,
         this.iframeDPS = 2,
         this.iframeCritDPS = 3,
+        this.critSpamDPS = 2,
 
         this.projectileDamagePercent = new Percentage(100),
         this.projectileDamage = 0,
@@ -491,6 +507,7 @@ class Stats {
         this.spellPowerPercent = new Percentage(100),
         this.spellDamage = new Percentage(100),
         this.spellCooldownPercent = new Percentage(100),
+        this.potionDamage = 1,
 
         this.aptitude = 0,
         this.ineptitude = 0,

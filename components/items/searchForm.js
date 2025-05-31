@@ -14,9 +14,10 @@ export default function SearchForm({ update, itemData }) {
     const [classKey, setClassKey] = React.useState(getResetKey("class"));
     const [charmStatKey, setCharmStatKey] = React.useState(getResetKey("charmStat"));
     const [baseItemKey, setBaseItemKey] = React.useState(getResetKey("baseItem"));
+    const [effectKey, setEffectKey] = React.useState(getResetKey("effect"));
     const form = React.useRef();
     const searchContainer = React.useRef();
-    
+
     const itemTypes = ["Helmet", "Chestplate", "Leggings", "Boots", "Axe", "Wand",
         "Scythe", "Pickaxe", "Shovel", "Bow", "Crossbow", "Snowball", "Trident",
         "Projectile", "Offhand Shield", "Mainhand Shield", "Mainhand Sword",
@@ -30,13 +31,17 @@ export default function SearchForm({ update, itemData }) {
     let pois = [];
     let charmStats = [];
     let baseItems = [];
-    
+    let effects = [];
+
     const categories = [
         new SearchCategory("Item Type", "items.searchForm.itemType", (uniqueKey) => {
             return <SelectInput key={itemTypeKey} name={`itemTypeSelect-${uniqueKey}`} baseTranslationString="items.type" sortableStats={itemTypes} />
         }),
         new SearchCategory("Item Stat", "items.searchForm.itemStat", (uniqueKey) => {
             return <SelectInput key={itemStatKey} name={`itemStatSelect-${uniqueKey}`} sortableStats={sortableStats} />
+        }),
+        new SearchCategory("Consumable Effect", "items.searchForm.effect", (uniqueKey) => {
+            return <SelectInput key={effectKey} name={`effectSelect-${uniqueKey}`} sortableStats={effects} />
         }),
         new SearchCategory("Region", "items.searchForm.region", (uniqueKey) => {
             return <SelectInput key={regionKey} name={`regionSelect-${uniqueKey}`} sortableStats={regions} />
@@ -55,6 +60,7 @@ export default function SearchForm({ update, itemData }) {
         }),
         new SearchCategory("Charm Class", "items.searchForm.charmClass", (uniqueKey) => {
             return <SelectInput key={classKey} name={`classSelect-${uniqueKey}`} sortableStats={charmClasses} />
+
         }),
         new SearchCategory("Base Item", "items.searchForm.baseItem", (uniqueKey) => {
             return <SelectInput key={baseItemKey} name={`baseItemSelect-${uniqueKey}`} sortableStats={baseItems} />
@@ -88,6 +94,7 @@ export default function SearchForm({ update, itemData }) {
         setClassKey(getResetKey("class"));
         setCharmStatKey(getResetKey("charmStat"));
         setBaseItemKey(getResetKey("baseItem"));
+        setEffectKey(getResetKey("effects"));
         setFilters([{"activeCategory": null, "selected": null, "uniqueKey": new Date().getTime()}]);
     }
 
@@ -102,6 +109,8 @@ export default function SearchForm({ update, itemData }) {
     generateLocations(itemData);
     generatePOIs();
     generateBaseItems(itemData);
+    generateEffects(itemData);
+
 
     function addFilter() {
         setFilters(oldFilters => [...oldFilters, {"activeCategory": null, "selected": null, "uniqueKey": new Date().getTime()}]);
@@ -174,7 +183,31 @@ export default function SearchForm({ update, itemData }) {
             charmStats.push(attribute.split("_").map(part => part[0].toUpperCase() + part.substring(1)).join(" ").replace(" Flat", "").replace(" Percent", " %"));
         });
     }
-    
+    function generateEffects(itemData) {
+      effects = [];
+      let uniqueEffects = {};
+      let consumableNames = Object.keys(itemData).filter(item => itemData[item].type === "Consumable");
+
+      for (let name of consumableNames) {
+          let item = itemData[name];
+          if (Array.isArray(item.effects)) {
+              item.effects.forEach(effect => {
+                  if (effect.EffectType) {
+                      uniqueEffects[effect.EffectType] = 1;
+                  }
+              });
+          }
+      }
+
+      Object.keys(uniqueEffects).forEach(effect => {
+          let formatted = effect.replace("damage","Damage");
+          formatted = formatted.replace(/([a-z])([A-Z])/g, "$1 $2");
+
+          effects.push(formatted);
+      });
+}
+
+
     function generateLocations(itemData) {
         locations = [];
         let uniqueLocations = {};
@@ -183,7 +216,7 @@ export default function SearchForm({ update, itemData }) {
         });
         Object.keys(uniqueLocations).forEach(locationName => locations.push(locationName));
     }
-    
+
     function generatePOIs() {
         pois = [];
         let uniquePois = {};
@@ -192,7 +225,7 @@ export default function SearchForm({ update, itemData }) {
         });
         Object.keys(uniquePois).forEach(poiName => pois.push(poiName));
     }
-    
+
     function generateBaseItems(itemData) {
         baseItems = [];
         let uniqueBaseItems = {};
