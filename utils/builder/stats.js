@@ -507,7 +507,7 @@ class Stats {
         this.spellPowerPercent = new Percentage(100),
         this.spellDamage = new Percentage(100),
         this.spellCooldownPercent = new Percentage(100),
-        this.potionDamage = 1,
+        this.potionDamage = 0,
 
         this.aptitude = 0,
         this.ineptitude = 0,
