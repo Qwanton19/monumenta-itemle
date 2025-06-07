@@ -1,3 +1,4 @@
+import Select from 'react-select';
 import SelectInput from '../items/selectInput';
 import CheckboxWithLabel from '../items/checkboxWithLabel';
 import ItemTile from '../items/itemTile';
@@ -15,20 +16,40 @@ import CharmShortener from '../../utils/builder/charmShortener';
 const emptyBuild = { mainhand: "None", offhand: "None", helmet: "None", chestplate: "None", leggings: "None", boots: "None" };
 
 const enabledBoxes = {
-    // Situationals
+    // Situational Defense
     shielding: false,
     poise: false,
     inure: false,
     steadfast: false,
     guard: false,
+    secondwind: false,
     ethereal: false,
     reflexes: false,
     evasion: false,
     tempo: false,
     cloaked: false,
-    secondwind: false,
-    // Other Buffs
-    versatile: false
+
+    // Situational Damage
+    smite: false,
+    duelist: false,
+    slayer: false,
+    pointblank: false,
+    sniper: false,
+    firststrike: false,
+    regicide: false,
+    trivium: false,
+    stamina: false,
+    technique: false,
+    abyssal: false,
+    // retaliation is handled separately
+
+    // Class Ability Buffs
+    versatile: false,
+    weaponmastery: false,
+    formidable: false,
+    dethroner: false, // handle dethroner separately?
+    culling: false,
+    totemicempowerment: false
 };
 
 const extraStats = {
@@ -140,6 +161,12 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
 
     const itemTypes = ["mainhand", "offhand", "helmet", "chestplate", "leggings", "boots"];
 
+    const regions = [
+        { value: 1, label: "Valley" },
+        { value: 2, label: "Isles" },
+        { value: 3, label: "Ring" }
+      ]
+
     const formRef = React.useRef();
     const router = useRouter();
     const itemRefs = {
@@ -226,7 +253,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
     }
 
     function checkboxChanged(event) {
-        const name = event.target.name;
+        const name = event.target.name.replace(" ",""); // remove spaces so we can still have them visually without breaking existing stuff
         enabledBoxes[name] = event.target.checked;
         const itemNames = Object.fromEntries(new FormData(formRef.current).entries());
         const tempStats = recalcBuild(itemNames, itemData);
@@ -304,18 +331,58 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                 <CheckboxWithLabel name="Inure" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Steadfast" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Guard" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="SecondWind" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Second Wind" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Ethereal" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Reflexes" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Evasion" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Tempo" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Cloaked" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Versatile" checked={false} onChange={checkboxChanged} />
             </div>
-            <div className="row justify-content-center my-2">
-                <div className="col text-center">
-                    <p className="mb-1"><TranslatableText identifier="builder.misc.situationalCap"></TranslatableText></p>
-                    <input type="number" name="situationalCap" placeholder="Situational Cap" min="1" defaultValue="30" className=""></input>
+            <div className="row justify-content-center pt-2">
+                <TranslatableText identifier="builder.misc.situationalDamage" className="text-center mb-1"></TranslatableText>
+                <CheckboxWithLabel name="Smite" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Duelist" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Slayer" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Point Blank" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Sniper" checked={false} onChange={checkboxChanged} />
+                <span style={{width: "10px", padding: "0px"}}>
+                </span>
+                <CheckboxWithLabel name="First Strike" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Regicide" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Trivium" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Stamina" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Technique" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Abyssal" checked={false} onChange={checkboxChanged} />
+                {/* TODO: implement retaliation as click-to-cycle none/normal/elite/boss */}
+            </div>
+            <div className="row justify-content-center pt-2">
+                <TranslatableText identifier="builder.misc.classAbilityBuffs" className="text-center mb-1"></TranslatableText>
+                <CheckboxWithLabel name="Versatile" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Weapon Mastery" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Formidable" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Dethroner" checked={false} onChange={checkboxChanged} />
+                {/* TODO: implement dethroner as click-to-cycle normal/elite/boss */}
+                <CheckboxWithLabel name="Culling" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Totemic Empowerment" checked={false} onChange={checkboxChanged} />
+            </div>
+            <div className="row justify-content-center mb-2 pt-2">
+                <div className="col-12 col-md-3 col-lg-2 text-center">
+                    <p className="mb-1"><TranslatableText identifier="builder.misc.region"></TranslatableText></p>
+                    {/*<input type="number" name="situationalCap" placeholder="Situational Cap" min="1" defaultValue="30" className=""></input>*/}
+                    <Select 
+                        options={regions} 
+                        defaultValue={{ value: 3, label: "Ring" }}
+                        theme={theme => ({
+                            ...theme,
+                            borderRadius: 0,
+                            colors: {
+                                ...theme.colors,
+                                primary: "#bbbbbb",
+                                primary25: "#2a2a2a",
+                                neutral0: "black",
+                                neutral80: "white"
+                        },
+                    })} />
                 </div>
             </div>
             <div className="row justify-content-center my-2">

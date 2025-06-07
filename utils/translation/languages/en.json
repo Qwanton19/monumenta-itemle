@@ -161,12 +161,15 @@
     "items.enchant.magicFragility": "Increases magic damage taken by 1 - 0.96 ^ (-2 * level).",
     "items.enchant.blastFragility": "Increases blast damage taken by 1 - 0.96 ^ (-2 * level).",
     "items.enchant.fireFragility": "Increases fire damage taken by 1 - 0.96 ^ (-2 * level).",
-    "items.enchant.retaliation": "After blocking an attack, your next attacks within 4 seconds deal increased damage based on the type of enemy blocked: +50% for boss, +40% for elite, +25% otherwise.",
+    "items.enchant.retaliation": "After blocking an attack, your next attacks within 4 seconds deal increased gear damage based on the type of enemy blocked: +65% for boss, +50% for elite, +35% otherwise. The bonus is halved for projectile and magic.",
     "items.enchant.reverb": "Upon killing a mob, (10% * level) of the overkill damage will be dealt to the nearest mob within 8 blocks. This reverb damage can trigger another reverb if it kills the second mob, and so on.",
 
-    "builder.misc.situationals": "Situationals",
+    "builder.misc.situationals": "Situational Defense",
+    "builder.misc.situationalDamage": "Situational Damage",
+    "builder.misc.classAbilityBuffs": "Class Ability Buffs",
     "builder.misc.maxHealthPercent": "Max Health Percent",
     "builder.misc.situationalCap": "Situational Cap",
+    "builder.misc.region": "Region",
 
     "builder.buttons.recalculate": "Recalculate",
     "builder.buttons.share": "Share",
