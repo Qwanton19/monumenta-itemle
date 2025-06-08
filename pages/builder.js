@@ -274,7 +274,7 @@ export async function getServerSideProps(context) {
                 itemData[mwExName].name = exName;
                 delete itemData[item];
             }
-            }
+        }
         switch (itemStats.location){
           case "Skr":
             itemData[item].location = "Silver Knight's Remnants";

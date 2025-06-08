@@ -22,7 +22,7 @@ const enabledBoxes = {
     inure: false,
     steadfast: false,
     guard: false,
-    secondwind: false,
+    second_wind: false,
     ethereal: false,
     reflexes: false,
     evasion: false,
@@ -33,9 +33,9 @@ const enabledBoxes = {
     smite: false,
     duelist: false,
     slayer: false,
-    pointblank: false,
+    point_blank: false,
     sniper: false,
-    firststrike: false,
+    first_strike: false,
     regicide: false,
     trivium: false,
     stamina: false,
@@ -45,11 +45,12 @@ const enabledBoxes = {
 
     // Class Ability Buffs
     versatile: false,
-    weaponmastery: false,
+    weapon_mastery: false,
     formidable: false,
-    dethroner: false, // handle dethroner separately?
+    dethroner_elite: false, // handle dethroner separately?
+    dethroner_boss: false,
     culling: false,
-    totemicempowerment: false
+    totemic_empowerment: false
 };
 
 const extraStats = {
@@ -253,7 +254,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
     }
 
     function checkboxChanged(event) {
-        const name = event.target.name.replace(" ",""); // remove spaces so we can still have them visually without breaking existing stuff
+        const name = event.target.name.replace(" ","_").replace(/[()]/g,""); // replace spaces so we can still have them visually without breaking existing stuff
         enabledBoxes[name] = event.target.checked;
         const itemNames = Object.fromEntries(new FormData(formRef.current).entries());
         const tempStats = recalcBuild(itemNames, itemData);
@@ -359,8 +360,10 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                 <TranslatableText identifier="builder.misc.classAbilityBuffs" className="text-center mb-1"></TranslatableText>
                 <CheckboxWithLabel name="Versatile" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Weapon Mastery" checked={false} onChange={checkboxChanged} />
+                {/* TODO: god dammit do i have to make a separate system for WM1 WM2 WM1u WM2u augh im just gonna make it assume WM2 */}
                 <CheckboxWithLabel name="Formidable" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Dethroner" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Dethroner (elite)" checked={false} onChange={checkboxChanged} />
+                <CheckboxWithLabel name="Dethroner (boss)" checked={false} onChange={checkboxChanged} />
                 {/* TODO: implement dethroner as click-to-cycle normal/elite/boss */}
                 <CheckboxWithLabel name="Culling" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Totemic Empowerment" checked={false} onChange={checkboxChanged} />
@@ -370,6 +373,8 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                     <p className="mb-1"><TranslatableText identifier="builder.misc.region"></TranslatableText></p>
                     {/*<input type="number" name="situationalCap" placeholder="Situational Cap" min="1" defaultValue="30" className=""></input>*/}
                     <Select 
+                        id="region"
+                        name="region"
                         options={regions} 
                         defaultValue={{ value: 3, label: "Ring" }}
                         theme={theme => ({
