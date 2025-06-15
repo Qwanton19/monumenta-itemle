@@ -63,7 +63,7 @@ class Stats {
 
         this.currentHealthPercent = (formData.health) ? new Percentage(formData.health) : new Percentage(100);
         this.situationalCap = (formData.region == 1) ? 20 : 30;
-        this.damageInfusionsMultiplier = 0.75 + 0.25 * formData.region;
+        this.damageInfusionsMultiplier = 0.75 + 0.25 * (formData.region || 3); // stupid fucking stateful react jank bullshit makes half the form not exist upon clicking reset so i have to have a default to avoid NaNs -LC
 
         this.extraDamageMultiplier = 1;
         this.extraResistanceMultiplier = new Percentage(100);
@@ -140,9 +140,9 @@ class Stats {
         // class damage
         if (this.enabledBoxes.weaponmastery) {
             let mainhandType = this.fullItemData.mainhand.type;
-            if (mainhandType == "Axe") {
+            if (this.fullItemData.mainhand.type == "Axe") {
                 classAttackDamagePercent.add(10);
-            } else if (mainhandType == "Mainhand Sword") {
+            } else if (this.fullItemData.mainhand.base_item?.match(/Sword/i)) { // sword wands are still swords but count as wands in item type -LC
                 classAttackDamagePercent.add(10); 
             }
         }
@@ -151,7 +151,7 @@ class Stats {
         }
         if (
             (this.enabledBoxes.dethroner_boss || this.enabledBoxes.dethroner_elite)
-            && this.fullItemData.mainhand.base_item.match(/Sword/i) // sword wands are still swords but count as wands in item type
+            && this.fullItemData.mainhand.base_item?.match(/Sword/i)
             && this.fullItemData.offhand.type == "Offhand Sword"
         ) {
             classAttackDamagePercent.add(this.enabledBoxes.dethroner_boss ? 15 : 30); // boss takes priority
@@ -333,11 +333,11 @@ class Stats {
             100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
         damageTaken.secondwind *= Math.pow(0.9, this.situationals.second_wind.level);
 
-        if (this.enabledBoxes.weaponmastery && this.fullItemData.mainhand.type == "Mainhand Sword") {
+        if (this.enabledBoxes.weaponmastery && this.fullItemData.mainhand.base_item?.match(/Sword/i)) {
             bonusResistanceMultiplier *= 0.9;
         }
 
-        if (this.enabledBoxes.culling && this.fullItemData.mainhand.type == "Mainhand Sword") {
+        if (this.enabledBoxes.culling && this.fullItemData.mainhand.type == "Scythe") {
             bonusResistanceMultiplier *= 0.9;
         }
 
@@ -451,7 +451,8 @@ class Stats {
     }
 
     sumEnchantmentStat(itemStats, enchName, perLevelMultiplier) {
-        if (!itemStats) return (perLevelMultiplier) ? perLevelMultiplier : 0;
+        // console.log("summing up ",itemStats," value of ",enchName," with multiplier ", perLevelMultiplier)
+        if (!itemStats) return 0;
         return (itemStats[enchName]) ? Number(itemStats[enchName]) * perLevelMultiplier : 0;
     }
 

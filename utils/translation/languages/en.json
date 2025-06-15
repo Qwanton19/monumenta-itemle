@@ -232,7 +232,7 @@
 
     "builder.stats.magic.magicDamagePercent": "Magic Damage",
     "builder.stats.magic.spellPowerPercent": "Spell Power",
-    "builder.stats.magic.spellDamage": "Total Magic Damage",
+    "builder.stats.magic.spellDamage": "Total Spell Damage",
     "builder.stats.magic.spellCooldownPercent": "Cooldown Duration",
     "builder.stats.magic.potionDamage": "Potion Damage",
 

@@ -1,0 +1,31 @@
+.builderHeaderText {
+    display: inline-block;
+    text-align: center !important;
+}
+
+.builderHeaderEditIcon {
+    vertical-align: text-bottom;
+    max-width: 34px;
+    max-height: 34px;
+    padding: 2px;
+    border: 2px solid white;
+    border-radius: 8px;
+}
+
+.builderHeaderEditIcon:hover {
+    cursor: pointer;
+    background: #444444;
+}
+
+.builderHeaderEditIcon:active {
+    cursor: pointer;
+    background: unset;
+}
+
+.spacer {
+    display: inline-block;
+    min-width: 12px;
+    padding: 0;
+    background-color: blueviolet;
+    box-sizing: content-box;
+}

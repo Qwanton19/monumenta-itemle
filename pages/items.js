@@ -111,7 +111,7 @@ function getRelevantItems(data, itemData, exaltedNameList) {
             let attributeName = stat.split(" ").map(part => part.toLowerCase()).join("_");
             attributeName = (attributeName.includes("_%")) ? attributeName.replace("_%", "_percent") : attributeName += "_flat";
             items = items.filter(name => itemData[name].type == "Charm" && itemData[name].stats[attributeName] != undefined);
-            items = items.sort((item1, item2) => ((itemData[item2].stats[attributeName] || 0)  - (itemData[item1].stats[attributeName] || 0)));
+            items = items.sort((item1, item2) => ((itemData[item2].stats[attributeName].value || 0)  - (itemData[item1].stats[attributeName].value || 0)));
         });
     }
 

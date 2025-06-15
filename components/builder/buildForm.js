@@ -346,8 +346,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                 <CheckboxWithLabel name="Slayer" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Point Blank" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Sniper" checked={false} onChange={checkboxChanged} />
-                <span style={{width: "10px", padding: "0px"}}>
-                </span>
+                <span style={{width: "10px", padding: "0px"}}></span>
                 <CheckboxWithLabel name="First Strike" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Regicide" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Trivium" checked={false} onChange={checkboxChanged} />
@@ -360,7 +359,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                 <TranslatableText identifier="builder.misc.classAbilityBuffs" className="text-center mb-1"></TranslatableText>
                 <CheckboxWithLabel name="Versatile" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Weapon Mastery" checked={false} onChange={checkboxChanged} />
-                {/* TODO: god dammit do i have to make a separate system for WM1 WM2 WM1u WM2u augh im just gonna make it assume WM2 */}
+                {/* TODO: do i have to make a separate system for WM1 WM2 WM1u WM2u augh im just gonna make it assume WM2 */}
                 <CheckboxWithLabel name="Formidable" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Dethroner (elite)" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Dethroner (boss)" checked={false} onChange={checkboxChanged} />
@@ -373,6 +372,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                     <p className="mb-1"><TranslatableText identifier="builder.misc.region"></TranslatableText></p>
                     {/*<input type="number" name="situationalCap" placeholder="Situational Cap" min="1" defaultValue="30" className=""></input>*/}
                     <Select 
+                        instanceId="this-is-just-here-so-react-doesnt-yell-at-me"
                         id="region"
                         name="region"
                         options={regions} 

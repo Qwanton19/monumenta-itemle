@@ -6,6 +6,7 @@ import Axios from 'axios';
 import AuthProvider from '../utils/authProvider';
 import Fs from 'fs/promises';
 import extras from '../public/items/extras.json';
+import BuilderHeader from '../components/items/builderHeader';
 
 function getLinkPreviewDescription(build, itemData) {
     if (!build) return ""
@@ -28,6 +29,14 @@ function getLinkPreviewDescription(build, itemData) {
     };
 
     return res;
+}
+
+function getBuildName(build) {
+    if (!build) return "";
+    const buildParts = decodeURI(build).split("&");
+    let buildName = buildParts.find(str => str.includes("name="))?.split("name=")[1];
+    if(buildName === undefined) return "";
+    return buildName + " - ";
 }
 
 export default function Builder({ build, itemData }) {
@@ -106,10 +115,16 @@ export default function Builder({ build, itemData }) {
     ];
     const magicStats = [
         { type: "magicDamagePercent", name: "builder.stats.magic.magicDamagePercent", percent: true },
-        { type: "spellPowerPercent", name: "builder.stats.magic.spellPowerPercent", percent: true },
+        // { type: "spellPowerPercent", name: "builder.stats.magic.spellPowerPercent", percent: true }, 
+        // technically for consistency having this ^ line here doesn't make sense because it's like if
+        // melee stats listed "weapon base attack damage" as a line
+        // but i might re add it anyway if people don't like it being removed
+
+        // one of these two gets hidden later depending on if potion damage exists
+        // spell is only for wands, potion is only for alch bags
         { type: "spellDamage", name: "builder.stats.magic.spellDamage", percent: true },
-        { type: "spellCooldownPercent", name: "builder.stats.magic.spellCooldownPercent", percent: true },
-        { type: "potionDamage", name: "builder.stats.magic.potionDamage", percent: false}
+        { type: "potionDamage", name: "builder.stats.magic.potionDamage", percent: false },
+        { type: "spellCooldownPercent", name: "builder.stats.magic.spellCooldownPercent", percent: true }
     ];
 
 
@@ -123,11 +138,7 @@ export default function Builder({ build, itemData }) {
                 <meta name="keywords" content="Monumenta, Minecraft, MMORPG, Items, Builder" />
             </Head>
             <main>
-                <div className="row mb-5">
-                    <div className="col-12">
-                        <h1 className="text-center">Monumenta Builder</h1>
-                    </div>
-                </div>
+                <BuilderHeader />
                 <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData}></BuildForm>
                 <div className="row justify-content-center mb-2">
                     <div className="col-auto text-center border border-dark mx-2 py-2">
@@ -218,12 +229,16 @@ export default function Builder({ build, itemData }) {
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.magic"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
-                            magicStats.map(stat =>
-                                (itemsToDisplay[stat.type] !== undefined) ?
+                            magicStats.map(stat => {
+                                return (
+                                    itemsToDisplay[stat.type] !== undefined
+                                    && (stat.type != "potionDamage" || itemsToDisplay.spellDamage == 100) // only show potion damage if spell damage is 100% (default)
+                                    && (stat.type != "spellDamage" || itemsToDisplay.potionDamage == 0) // only show spell damage if potion damage is 0
+                                ) ?
                                     <div key={stat.type}>
                                         <p className="mb-1 mt-1"><b><TranslatableText identifier={stat.name}></TranslatableText>: </b>{itemsToDisplay[stat.type]}{stat.percent ? "%" : ""}</p>
                                     </div> : ""
-                            )
+                            })
                         }
                     </div>
                 </div>
