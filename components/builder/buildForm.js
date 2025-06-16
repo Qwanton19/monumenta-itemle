@@ -151,7 +151,11 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
             if (charmString) {
                 let charmList = CharmShortener.parseCharmData(charmString.split("charm=")[1], itemData);
                 setUrlCharms(charmList);
-                setCharms(charmList);
+
+                // dunno what happened here but i needed to change this to have the map()
+                // so it's passing a list of charm objects, not charm names
+                // idk why it worked before and stopped working now, but this fixes it
+                setCharms(charmList.map(name => itemData[name]));
             }
             const tempStats = recalcBuild(itemNames, itemData);
             setStats(tempStats);
