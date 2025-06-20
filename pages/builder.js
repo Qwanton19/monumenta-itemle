@@ -43,6 +43,11 @@ function getBuildName(build) {
 export default function Builder({ build, itemData }) {
     const [builderHeaderText, setBuilderHeaderText] = React.useState("Monumenta Builder");
     const [itemsToDisplay, setItemsToDisplay] = React.useState({});
+
+    // used for a weird logical reacharound to trigger a form "update" from builderheader
+    // out of the ways i could have done it, this is the least bad
+    const [updateLink, setUpdateLink] = React.useState(false);
+
     function change(itemData) {
         setItemsToDisplay(itemData);
     }
@@ -140,8 +145,8 @@ export default function Builder({ build, itemData }) {
                 <meta name="keywords" content="Monumenta, Minecraft, MMORPG, Items, Builder" />
             </Head>
             <main>
-                <BuilderHeader text={builderHeaderText} setText={setBuilderHeaderText} parentLoaded={parentLoaded} build={build}/>
-                <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData} itemsToDisplay={itemsToDisplay} buildName={builderHeaderText}></BuildForm>
+                <BuilderHeader text={builderHeaderText} setText={setBuilderHeaderText} parentLoaded={parentLoaded} build={build} setUpdateLink={setUpdateLink}/>
+                <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData} itemsToDisplay={itemsToDisplay} buildName={builderHeaderText} updateLink={updateLink} setUpdateLink={setUpdateLink}></BuildForm>
                 <div className="row justify-content-center mb-2">
                     <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.misc"></TranslatableText></h5>

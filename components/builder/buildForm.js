@@ -195,7 +195,7 @@ function generateSituationalCheckboxes(itemsToDisplay, checkboxChanged){
     return temp;
 }
 
-export default function BuildForm({ update, build, parentLoaded, itemData, itemsToDisplay, buildName }) {
+export default function BuildForm({ update, build, parentLoaded, itemData, itemsToDisplay, buildName, updateLink, setUpdateLink }) {
     const [stats, setStats] = React.useState({});
     const [charms, setCharms] = React.useState([]);
     const [urlCharms, setUrlCharms] = React.useState([]);
@@ -320,8 +320,8 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         return { "value": name, "label": removeMasterworkFromName(name) };
     }
 
-    function makeBuildString(charmsOverride) {
-        let data = new FormData(formRef.current).entries();
+    function makeBuildString(charmsOverride, dataOverride) {
+        let data = (dataOverride) ? dataOverride : new FormData(formRef.current).entries();
         let buildString = "";
         let keysToShare = ["mainhand", "offhand", "helmet", "chestplate", "leggings", "boots"];
         for (const [key, value] of data) {
@@ -391,11 +391,24 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         // Unlike most event handler props, Select's `onChange` does not pass an event.
         // It instead passes the new value of the Select, and an "action meta".
         // Why is this not condensed into an event containing both of these and a ref to the target? Beats me. -LC
-        const itemNames = Object.fromEntries(new FormData(formRef.current).entries());
-        itemNames[actionMeta.name] = newValue.value;
+        let entries = Array.from(new FormData(formRef.current).entries());
+        console.log(entries);
+        for(let i=0;i<entries.length;i++){
+            if(entries[i][0] == actionMeta.name) entries[i][1] = newValue.value;
+        }
+        console.log(entries);
+        const itemNames = Object.fromEntries(entries);
         const tempStats = recalcBuild(itemNames, itemData);
         setStats(tempStats);
         update(tempStats);
+        router.push(`/builder?${makeBuildString(null, entries)}`, `/builder/${makeBuildString(null, entries)}`, { shallow: true });
+    }
+
+    if(updateLink){
+        // awkward signal thing to update the link from the builderheader to get the name properly fixed up
+        // don't need to worry about updating the build string since it auto updates on dropdown change now
+        router.push(`/builder?${makeBuildString()}`, `/builder/${makeBuildString()}`, { shallow: true });
+        setUpdateLink(false);
     }
 
     return (

@@ -41,6 +41,7 @@ export default function BuilderHeader(data) {
         setEditing(false);
         if(text.trim() === "") setText("Monumenta Builder");
         // document.getElementById("buildForm").sendUpdate(); // forces url to update // doesnt work
+        data.setUpdateLink(true);
     }
 
     function textchanged(e){
