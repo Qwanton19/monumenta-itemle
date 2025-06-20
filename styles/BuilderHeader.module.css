@@ -1,6 +1,8 @@
 .builderHeaderText {
     display: inline-block;
     text-align: center !important;
+    padding: 1px;
+    font-size: calc(1.25rem + 1.5vw);
 }
 
 .builderHeaderEditIcon {
@@ -28,4 +30,16 @@
     padding: 0;
     background-color: blueviolet;
     box-sizing: content-box;
+}
+
+.theTextbox {
+    margin-top: 0;
+    margin-bottom: .5rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--bs-heading-color);
+    font-size: calc(1.25rem + 1.5vw);
+    border: none;
+    outline: none;
+    height: auto;
 }

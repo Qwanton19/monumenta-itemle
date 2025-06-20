@@ -53,6 +53,37 @@ const enabledBoxes = {
     totemic_empowerment: false
 };
 
+const situationalDefenses = [
+    "shielding",
+    "poise",
+    "inure",
+    "steadfast",
+    "guard",
+    "second_wind",
+    "ethereal",
+    "reflexes",
+    "evasion",
+    "tempo",
+    "cloaked"
+]
+
+const situationalFlatDamage = [
+    "smite",
+    "duelist",
+    "slayer",
+    "point_blank",
+    "sniper"
+]
+
+const situationalPercentDamage = [
+    "first_strike",
+    "regicide",
+    "trivium",
+    "stamina",
+    "technique",
+    "abyssal"
+]
+
 const extraStats = {
     damageMultipliers: [],
     resistanceMultipliers: [],
@@ -115,7 +146,56 @@ function checkExists(type, itemsToDisplay, itemData) {
     return retVal;
 }
 
-export default function BuildForm({ update, build, parentLoaded, itemData }) {
+function formatSituationalName(situ) {
+    return situ.split("_").map(word => word[0].toUpperCase() + word.substring(1)).join(" ")
+}
+
+function generateSituationalCheckboxes(itemsToDisplay, checkboxChanged){
+    let tempDef = [];
+    let tempFlatDmg = [];
+    let tempPercentDmg = [];
+
+    situationalDefenses.map(function(situ) { 
+        if(!itemsToDisplay.situationals) return;
+        if(itemsToDisplay.situationals[situ].level) { 
+            tempDef.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={false} onChange={checkboxChanged} />);
+        }
+    });
+    situationalFlatDamage.map(function(situ) { 
+        if(!itemsToDisplay.situationals) return;
+        if(itemsToDisplay.situationals[situ].level) { 
+            tempFlatDmg.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={false} onChange={checkboxChanged} />);
+        }
+    });
+    situationalPercentDamage.map(function(situ) { 
+        if(!itemsToDisplay.situationals) return;
+        if(itemsToDisplay.situationals[situ].level) { 
+            tempPercentDmg.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={false} onChange={checkboxChanged} />);
+        }
+    });
+    /* if(itemsToDisplay.meleeDamagePercent > 100 || itemsToDisplay.projectileDamagePercent > 100){
+        tempPercentDmg.push(<CheckboxWithLabel key={"situationalbox-versatile"} name="Versatile" checked={false} onChange={checkboxChanged} />)
+    } */
+
+    let temp = [];
+    temp.push(...tempDef);
+    if(tempDef.length > 0 && tempFlatDmg.length > 0){
+        temp.push(<span key="spacer1" style={{width: "10px", padding: "0px"}}></span>);
+        // spacer between def and flat damage if both exist
+    }
+    temp.push(...tempFlatDmg);
+    if(temp.length > 0 && tempPercentDmg.length > 0){
+        temp.push(<span key="spacer2" style={{width: "10px", padding: "0px"}}></span>);
+        // spacer between existing stuff and percent damage if both exist
+    }
+    temp.push(...tempPercentDmg);
+    if(temp.length == 0){
+        temp.push(<TranslatableText className={styles.noSituationals} key="builder.info.noSituationals" identifier="builder.info.noSituationals"></TranslatableText>)
+    }
+    return temp;
+}
+
+export default function BuildForm({ update, build, parentLoaded, itemData, itemsToDisplay, buildName }) {
     const [stats, setStats] = React.useState({});
     const [charms, setCharms] = React.useState([]);
     const [urlCharms, setUrlCharms] = React.useState([]);
@@ -251,10 +331,14 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
         let charmsToLookAt = (charmsOverride) ? charmsOverride : charms;
 
         if (charmsToLookAt.length == 0) {
-            return (buildString + "charm=None");
+            buildString += "charm=None";
+        } else {
+            buildString += `charm=${CharmShortener.shortenCharmList(charmsToLookAt)}`;
         }
 
-        return (buildString += `charm=${CharmShortener.shortenCharmList(charmsToLookAt)}`);
+        if(buildName != "Monumenta Builder") buildString += `&name=${encodeURIComponent(buildName)}`;
+
+        return buildString;
     }
 
     function checkboxChanged(event) {
@@ -299,78 +383,75 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
         router.push(`/builder?${makeBuildString(charmData)}`, `/builder/${makeBuildString(charmData)}`, { shallow: true });
     }
 
+    function itemChanged(newValue, actionMeta) {
+        // This is here so you don't have to scroll down to "Recalculate" and then back up to click a situational.
+        // It updates the whole form. I don't think this was the original intent but checkboxes do anyway
+        // so may as well. However, it's kind of awkward because the FormData.entries() does not yet contain
+        // the new value of the item that was just changed, so we have to get it ourselves.
+        // Unlike most event handler props, Select's `onChange` does not pass an event.
+        // It instead passes the new value of the Select, and an "action meta".
+        // Why is this not condensed into an event containing both of these and a ref to the target? Beats me. -LC
+        const itemNames = Object.fromEntries(new FormData(formRef.current).entries());
+        itemNames[actionMeta.name] = newValue.value;
+        const tempStats = recalcBuild(itemNames, itemData);
+        setStats(tempStats);
+        update(tempStats);
+    }
+
     return (
-        <form ref={formRef} onSubmit={sendUpdate} onReset={resetForm}>
+        <form ref={formRef} onSubmit={sendUpdate} onReset={resetForm} id="buildForm">
             <div className="row justify-content-center mb-3">
                 <div className="col-12 col-md-5 col-lg-2 text-center">
                     <TranslatableText identifier="items.type.mainhand"></TranslatableText>
-                    <SelectInput reference={itemRefs.mainhand} name="mainhand" default={getEquipName("mainhand")} noneOption={true} sortableStats={getRelevantItems(["mainhand", "mainhand sword", "mainhand shield", "axe", "pickaxe", "wand", "scythe", "bow", "crossbow", "snowball", "trident"], itemData)}></SelectInput>
+                    <SelectInput reference={itemRefs.mainhand} name="mainhand" default={getEquipName("mainhand")} noneOption={true} sortableStats={getRelevantItems(["mainhand", "mainhand sword", "mainhand shield", "axe", "pickaxe", "wand", "scythe", "bow", "crossbow", "snowball", "trident"], itemData)} onChange={itemChanged}></SelectInput>
                 </div>
                 <div className="col-12 col-md-5 col-lg-2 text-center">
                     <TranslatableText identifier="items.type.offhand"></TranslatableText>
-                    <SelectInput reference={itemRefs.offhand} name="offhand" default={getEquipName("offhand")} noneOption={true} sortableStats={getRelevantItems(["offhand", "offhand shield", "offhand sword"], itemData)}></SelectInput>
+                    <SelectInput reference={itemRefs.offhand} name="offhand" default={getEquipName("offhand")} noneOption={true} sortableStats={getRelevantItems(["offhand", "offhand shield", "offhand sword"], itemData)} onChange={itemChanged}></SelectInput>
                 </div>
             </div>
             <div className="row justify-content-center mb-2 pt-2">
                 <div className="col-12 col-md-3 col-lg-2 text-center">
                     <TranslatableText identifier="items.type.helmet"></TranslatableText>
-                    <SelectInput reference={itemRefs.helmet} noneOption={true} name="helmet" default={getEquipName("helmet")} sortableStats={getRelevantItems(["helmet"], itemData)}></SelectInput>
+                    <SelectInput reference={itemRefs.helmet} noneOption={true} name="helmet" default={getEquipName("helmet")} sortableStats={getRelevantItems(["helmet"], itemData)} onChange={itemChanged}></SelectInput>
                 </div>
                 <div className="col-12 col-md-3 col-lg-2 text-center">
                     <TranslatableText identifier="items.type.chestplate"></TranslatableText>
-                    <SelectInput reference={itemRefs.chestplate} noneOption={true} name="chestplate" default={getEquipName("chestplate")} sortableStats={getRelevantItems(["chestplate"], itemData)}></SelectInput>
+                    <SelectInput reference={itemRefs.chestplate} noneOption={true} name="chestplate" default={getEquipName("chestplate")} sortableStats={getRelevantItems(["chestplate"], itemData)} onChange={itemChanged}></SelectInput>
                 </div>
                 <div className="col-12 col-md-3 col-lg-2 text-center">
                     <TranslatableText identifier="items.type.leggings"></TranslatableText>
-                    <SelectInput reference={itemRefs.leggings} noneOption={true} name="leggings" default={getEquipName("leggings")} sortableStats={getRelevantItems(["leggings"], itemData)}></SelectInput>
+                    <SelectInput reference={itemRefs.leggings} noneOption={true} name="leggings" default={getEquipName("leggings")} sortableStats={getRelevantItems(["leggings"], itemData)} onChange={itemChanged}></SelectInput>
                 </div>
                 <div className="col-12 col-md-3 col-lg-2 text-center">
                     <TranslatableText identifier="items.type.boots"></TranslatableText>
-                    <SelectInput reference={itemRefs.boots} noneOption={true} name="boots" default={getEquipName("boots")} sortableStats={getRelevantItems(["boots"], itemData)}></SelectInput>
+                    <SelectInput reference={itemRefs.boots} noneOption={true} name="boots" default={getEquipName("boots")} sortableStats={getRelevantItems(["boots"], itemData)} onChange={itemChanged}></SelectInput>
                 </div>
             </div>
             <div className="row justify-content-center pt-2">
                 <TranslatableText identifier="builder.misc.situationals" className="text-center mb-1"></TranslatableText>
-                <CheckboxWithLabel name="Shielding" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Poise" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Inure" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Steadfast" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Guard" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Second Wind" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Ethereal" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Reflexes" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Evasion" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Tempo" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Cloaked" checked={false} onChange={checkboxChanged} />
+                {generateSituationalCheckboxes(itemsToDisplay, checkboxChanged)}
             </div>
-            <div className="row justify-content-center pt-2">
-                <TranslatableText identifier="builder.misc.situationalDamage" className="text-center mb-1"></TranslatableText>
-                <CheckboxWithLabel name="Smite" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Duelist" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Slayer" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Point Blank" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Sniper" checked={false} onChange={checkboxChanged} />
-                <span style={{width: "10px", padding: "0px"}}></span>
-                <CheckboxWithLabel name="First Strike" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Regicide" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Trivium" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Stamina" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Technique" checked={false} onChange={checkboxChanged} />
-                <CheckboxWithLabel name="Abyssal" checked={false} onChange={checkboxChanged} />
-                {/* TODO: implement retaliation as click-to-cycle none/normal/elite/boss */}
-            </div>
-            <div className="row justify-content-center pt-2">
+            {/* <div className="row justify-content-center pt-2">
+
+                I partially implemented class ability buffs here, but I'm going to leave it unfinished and dummied-out for now
+                pending some more visual changes that are really moving into scope creep territory.
+                I just want to get something out already so charms can be fixed. The rest can come later.
+                (Versatile ~~has also been moved back with situationals for the moment~~ this is now false, it is
+                disabled for now because it was causing problems in the situationals section)
+                -LC
+
                 <TranslatableText identifier="builder.misc.classAbilityBuffs" className="text-center mb-1"></TranslatableText>
                 <CheckboxWithLabel name="Versatile" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Weapon Mastery" checked={false} onChange={checkboxChanged} />
-                {/* TODO: do i have to make a separate system for WM1 WM2 WM1u WM2u augh im just gonna make it assume WM2 */}
+                {/* TODO: do i have to make a separate system for WM1 WM2 WM1u WM2u augh im just gonna make it assume WM2 * /}
                 <CheckboxWithLabel name="Formidable" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Dethroner (elite)" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Dethroner (boss)" checked={false} onChange={checkboxChanged} />
-                {/* TODO: implement dethroner as click-to-cycle normal/elite/boss */}
+                {/* TODO: implement dethroner as click-to-cycle normal/elite/boss * /}
                 <CheckboxWithLabel name="Culling" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Totemic Empowerment" checked={false} onChange={checkboxChanged} />
-            </div>
+            </div> */}
             <div className="row justify-content-center mb-2 pt-2">
                 <div className="col-12 col-md-3 col-lg-2 text-center">
                     <p className="mb-1"><TranslatableText identifier="builder.misc.region"></TranslatableText></p>
@@ -468,7 +549,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData }) {
                     itemTypes.map(type =>
                         (checkExists(type, stats, itemData)) ?
                             (stats.fullItemData[type].masterwork != undefined) ?
-                                <MasterworkableItemTile update={receiveMasterworkUpdate} key={stats.itemNames[type]} name={removeMasterworkFromName(stats.itemNames[type])} item={createMasterworkData(removeMasterworkFromName(stats.itemNames[type]), itemData)} default={Number(stats.itemNames[type].split("-")[1])}></MasterworkableItemTile> :
+                                <MasterworkableItemTile update={receiveMasterworkUpdate} key={stats.itemNames[type]} name={removeMasterworkFromName(stats.itemNames[type])} item={createMasterworkData(removeMasterworkFromName(stats.itemNames[type]), itemData)} default={Number(stats.itemNames[type].split("-").at(-1))}></MasterworkableItemTile> :
                                 <ItemTile key={type} name={stats.itemNames[type]} item={stats.fullItemData[type]}></ItemTile> : ""
                     )
                 }

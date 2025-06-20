@@ -164,8 +164,7 @@
     "items.enchant.retaliation": "After blocking an attack, your next attacks within 4 seconds deal increased gear damage based on the type of enemy blocked: +65% for boss, +50% for elite, +35% otherwise. The bonus is halved for projectile and magic.",
     "items.enchant.reverb": "Upon killing a mob, (10% * level) of the overkill damage will be dealt to the nearest mob within 8 blocks. This reverb damage can trigger another reverb if it kills the second mob, and so on.",
 
-    "builder.misc.situationals": "Situational Defense",
-    "builder.misc.situationalDamage": "Situational Damage",
+    "builder.misc.situationals": "Situationals",
     "builder.misc.classAbilityBuffs": "Class Ability Buffs",
     "builder.misc.maxHealthPercent": "Max Health Percent",
     "builder.misc.situationalCap": "Situational Cap",
@@ -175,6 +174,8 @@
     "builder.buttons.share": "Share",
 
     "builder.charms.select": "Select Charms",
+
+    "builder.info.noSituationals": "(no situationals to display)",
 
     "builder.errors.corruption": "YOU HAVE MORE THAN ONE CURSE OF CORRUPTION ITEM",
     "builder.errors.twoHanded": "YOU ARE USING A TWO HANDED MAINHAND WITH A NON WEIGHTLESS OFFHAND",

@@ -26,6 +26,14 @@
 
 .checkboxWithLabel {
     outline: 1px solid #cccccc;
+}
+
+.noSituationals {
+    color: #aaa;
+    font-style: italic;
+}
+
+.noSituationals, .checkboxWithLabel {
     background-color: black;
     padding: 4px;
     margin: 2px;

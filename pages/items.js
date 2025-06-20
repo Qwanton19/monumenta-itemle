@@ -19,16 +19,17 @@ function extractFilterValues(data, baseKey) {
 
 function getRelevantItems(data, itemData, exaltedNameList) {
     let items = Object.keys(itemData);
+    items = items.filter(name => itemData[name].base_item != 'Written Book');
 
     console.log("Data", data);
 
     if (data.searchName) {
         // Check if the user inputted any "|" to search for multiple item names at once.
         let names = data.searchName.split("|").map(name => name.toLowerCase().trim());
-        items = items.filter(name => {
+        items = items.filter(key => {
             let result = false;
             names.forEach(term => {
-                if (name.toLowerCase().includes(term)) {
+                if (itemData[key].name.toLowerCase().includes(term)) {
                     result = true;
                     return;
                 }
@@ -36,7 +37,7 @@ function getRelevantItems(data, itemData, exaltedNameList) {
             return result;
         });
     }
-    items = items.filter(name => itemData[name].base_item != 'Written Book');
+
     if (data.searchLore) {
         items = items.filter(name => itemData[name].lore?.toLowerCase().includes(data.searchLore.toLowerCase()))
     }
