@@ -119,7 +119,7 @@ class Stats {
         let regicideSit = (this.situationals.regicide.enabled) ? 10 * this.situationals.regicide.level : 0;
         let triviumSit = (this.situationals.trivium.enabled) ? 10 * this.situationals.trivium.level : 0;
         let staminaSit = (this.situationals.stamina.enabled) ? 10 * this.situationals.stamina.level : 0;
-        let techniqueSit = (this.situationals.technique.enabled) ? 10 * this.situationals.regicide.level : 0;
+        let techniqueSit = (this.situationals.technique.enabled) ? 10 * this.situationals.technique.level : 0;
         let abyssalSit = (this.situationals.abyssal.enabled) ? 10 * this.situationals.abyssal.level : 0;
 
         // Melee Stats
