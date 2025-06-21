@@ -158,19 +158,19 @@ function generateSituationalCheckboxes(itemsToDisplay, checkboxChanged){
     situationalDefenses.map(function(situ) { 
         if(!itemsToDisplay.situationals) return;
         if(itemsToDisplay.situationals[situ].level) { 
-            tempDef.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={false} onChange={checkboxChanged} />);
+            tempDef.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={enabledBoxes[situ]} onChange={checkboxChanged} />);
         }
     });
     situationalFlatDamage.map(function(situ) { 
         if(!itemsToDisplay.situationals) return;
         if(itemsToDisplay.situationals[situ].level) { 
-            tempFlatDmg.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={false} onChange={checkboxChanged} />);
+            tempFlatDmg.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={enabledBoxes[situ]} onChange={checkboxChanged} />);
         }
     });
     situationalPercentDamage.map(function(situ) { 
         if(!itemsToDisplay.situationals) return;
         if(itemsToDisplay.situationals[situ].level) { 
-            tempPercentDmg.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={false} onChange={checkboxChanged} />);
+            tempPercentDmg.push(<CheckboxWithLabel key={"situationalbox-"+situ} name={formatSituationalName(situ)} checked={enabledBoxes[situ]} onChange={checkboxChanged} />);
         }
     });
     /* if(itemsToDisplay.meleeDamagePercent > 100 || itemsToDisplay.projectileDamagePercent > 100){
@@ -410,11 +410,9 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         // It instead passes the new value of the Select, and an "action meta".
         // Why is this not condensed into an event containing both of these and a ref to the target? Beats me. -LC
         let entries = Array.from(new FormData(formRef.current).entries());
-        console.log(entries);
         for(let i=0;i<entries.length;i++){
             if(entries[i][0] == actionMeta.name) entries[i][1] = newValue.value;
         }
-        console.log(entries);
         const itemNames = Object.fromEntries(entries);
         const tempStats = recalcBuild(itemNames, itemData);
         setStats(tempStats);

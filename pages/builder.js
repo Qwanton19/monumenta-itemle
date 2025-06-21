@@ -32,7 +32,8 @@ function getLinkPreviewDescription(build, itemData) {
 }
 
 function getBuildName(build, builderHeaderText) {
-    if(builderHeaderText !== "Monumenta Builder") return builderHeaderText + " - ";
+    if(builderHeaderText === "Monumenta Builder") return "";
+    if(builderHeaderText !== undefined) return builderHeaderText + " - ";
     // console.log("getting build name from ",build)
     if (!build) return "";
     const buildParts = build[0].split("&");

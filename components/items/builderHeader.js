@@ -40,9 +40,14 @@ export default function BuilderHeader(data) {
     }
 
     function stopEditing(){
+        // react state is async so i need... multiple layers of temporary text
+        let reallyTempText = tempText;
+        if(reallyTempText.trim() == "") {
+            reallyTempText = "Monumenta Builder";
+        }
+        setTempText(reallyTempText);
+        setText(reallyTempText); // text and temptext are split so window title isn't updated by builder.js while we're typing
         setEditing(false);
-        setText(tempText); // this is so window title isn't updated by builder.js while we're typing
-        if(text.trim() === "") setText("Monumenta Builder");
         data.setUpdateLink(true);
     }
 
