@@ -127,7 +127,7 @@ export default function SearchForm({ update, itemData }) {
             <input type="text" name="searchName" className={styles.searchField} placeholder="Search Name" />
             <input type="text" name="searchLore" className={styles.searchField} placeholder="Search Lore" />
             <div>
-                <input className={styles.addFilterButton} type='button' value='＋' onClick={addFilter} />
+                <input className={styles.addFilterButton} type='button' value='+' onClick={addFilter} />
                 <input className={styles.submitButton} type="submit" />
                 <input className={styles.warningButton} type="reset" />
             </div>

@@ -35,9 +35,10 @@ function getBuildName(build, builderHeaderText) {
     if(builderHeaderText !== "Monumenta Builder") return builderHeaderText + " - ";
     // console.log("getting build name from ",build)
     if (!build) return "";
-    const buildParts = decodeURI(build).split("&");
+    const buildParts = build[0].split("&");
     let buildName = buildParts.find(str => str.includes("name="))?.split("name=")[1];
     if(buildName === undefined) return "";
+    buildName = decodeURIComponent(buildName);
     return buildName + " - ";
 }
 

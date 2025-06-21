@@ -482,6 +482,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                 {/* TODO: implement dethroner as click-to-cycle normal/elite/boss * /}
                 <CheckboxWithLabel name="Culling" checked={false} onChange={checkboxChanged} />
                 <CheckboxWithLabel name="Totemic Empowerment" checked={false} onChange={checkboxChanged} />
+                // dpact?
             </div> */}
             <div className="row justify-content-center mb-2 pt-2">
                 <div className="col-12 col-md-3 col-lg-2 text-center">

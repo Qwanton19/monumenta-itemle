@@ -16,6 +16,7 @@ export default function BuilderHeader(data) {
             let tempName = (buildParts.find(str => str.includes("name="))?.split("name=")[1]);
             if(tempName === undefined) tempName = "Monumenta Builder";
             setText(decodeURIComponent(tempName));
+            setTempText(decodeURIComponent(tempName));
             setLoaded(true);
         }
     }, [data.parentLoaded]);
