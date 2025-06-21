@@ -256,6 +256,13 @@ export async function getServerSideProps(context) {
         itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
     }
 
+    // hardcoded exemption for Truest North
+    for(let i=1;i<=4;i++) {
+        itemData["Truest North-"+i] = itemData["Truest North-"+i+" (compass)"]
+        delete itemData["Truest North-"+i+" (compass)"]
+        delete itemData["Truest North-"+i+" (shears)"]
+    }
+
     let exaltedNameList = [];
 
     // Add OTM extra info based on item's name

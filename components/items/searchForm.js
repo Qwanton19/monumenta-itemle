@@ -25,7 +25,7 @@ export default function SearchForm({ update, itemData }) {
     const charmClasses = ["Alchemist", "Mage", "Warlock", "Rogue", "Warrior",
         "Cleric", "Scout", "Shaman", "Generalist"];
     let sortableStats = [];
-    let regions = [];
+    let regions = ["Valley", "Isles", "Ring"];
     let tiers = [];
     let locations = [];
     let pois = [];
@@ -103,7 +103,7 @@ export default function SearchForm({ update, itemData }) {
     }
 
     generateSortableItemStats(itemData);
-    generateRegions();
+    // generateRegions();
     generateTiers(itemData);
     generateSortableCharmStats(itemData);
     generateLocations(itemData);
@@ -150,14 +150,18 @@ export default function SearchForm({ update, itemData }) {
         });
     }
 
-    function generateRegions() {
+    /* function generateRegions() {
         regions = [];
-        let uniqueRegions = {};
+        let uniqueRegions = {
+            Valley: 1,
+            Isles: 1,
+            Ring: 1
+        };
         Object.keys(itemData).map(item => itemData[item].region).filter(regionName => regionName != undefined).forEach(regionName => {
             uniqueRegions[regionName] = 1;
         });
         Object.keys(uniqueRegions).forEach(regionName => regions.push(regionName));
-    }
+    } */
 
     function generateTiers(itemData) {
         tiers = [];

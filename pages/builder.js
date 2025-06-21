@@ -31,7 +31,8 @@ function getLinkPreviewDescription(build, itemData) {
     return res;
 }
 
-function getBuildName(build) {
+function getBuildName(build, builderHeaderText) {
+    if(builderHeaderText !== "Monumenta Builder") return builderHeaderText + " - ";
     // console.log("getting build name from ",build)
     if (!build) return "";
     const buildParts = decodeURI(build).split("&");
@@ -138,7 +139,7 @@ export default function Builder({ build, itemData }) {
     return (
         <div className="container-fluid">
             <Head>
-                <title>{getBuildName(build) + "Monumenta Builder"}</title>
+                <title>{getBuildName(build, builderHeaderText) + "Monumenta Builder"}</title>
                 <meta property="og:site_name" content="ODE TO MISERY" />
                 <meta property="og:image" content="/favicon.ico" />
                 <meta name="description" content={`${getLinkPreviewDescription(build, itemData)}`} />
@@ -276,6 +277,17 @@ export async function getServerSideProps(context) {
         itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
     }
     let build = context.query?.build ? context.query.build : null;
+
+    // hardcoded exception for Truest North
+    for(let i=1;i<=4;i++) {
+        itemData["Truest North-"+i] = itemData["Truest North-"+i+" (compass)"]
+        delete itemData["Truest North-"+i+" (compass)"]
+        delete itemData["Truest North-"+i+" (shears)"]
+    }
+
+    // hardcoded exception for Carcano 91/38
+    itemData["Carcano 9138"] = itemData["Carcano 91/38"];
+    delete itemData["Carcano 91/38"];
 
     // Add OTM extra info based on item's name
     // (so that it gets copied the same to each masterwork level)

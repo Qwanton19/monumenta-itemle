@@ -8,13 +8,14 @@ export default function BuilderHeader(data) {
 
     const [editing, setEditing] = React.useState(false);
     const [loaded, setLoaded] = React.useState(false);
+    const [tempText, setTempText] = React.useState("Monumenta Builder");
 
     React.useEffect(() => {
         if (data.parentLoaded && data.build) {
             let buildParts = (data.build)[0].split("&");
-            let tempText = (buildParts.find(str => str.includes("name="))?.split("name=")[1]);
-            if(tempText === undefined) tempText = "Monumenta Builder";
-            setText(decodeURIComponent(tempText));
+            let tempName = (buildParts.find(str => str.includes("name="))?.split("name=")[1]);
+            if(tempName === undefined) tempName = "Monumenta Builder";
+            setText(decodeURIComponent(tempName));
             setLoaded(true);
         }
     }, [data.parentLoaded]);
@@ -39,13 +40,13 @@ export default function BuilderHeader(data) {
 
     function stopEditing(){
         setEditing(false);
+        setText(tempText); // this is so window title isn't updated by builder.js while we're typing
         if(text.trim() === "") setText("Monumenta Builder");
-        // document.getElementById("buildForm").sendUpdate(); // forces url to update // doesnt work
         data.setUpdateLink(true);
     }
 
     function textchanged(e){
-        setText(e.target.value);
+        setTempText(e.target.value);
     }
 
     function getPlaceholderBuildName() {
@@ -63,7 +64,7 @@ export default function BuilderHeader(data) {
                 <span className={styles.builderHeader}>
                     {
                         editing
-                        ? <input type="text" value={text} 
+                        ? <input type="text" value={tempText} 
                             onChange={textchanged} onKeyDown={keydown} spellCheck="false" 
                             className={styles.theTextbox} autoFocus onFocus={hasfocus} onBlur={lostfocus} />
                         : <h1 className={styles.builderHeaderText}>{
