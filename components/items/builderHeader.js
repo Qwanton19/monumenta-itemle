@@ -11,10 +11,13 @@ export default function BuilderHeader(data) {
     const [tempText, setTempText] = React.useState("Monumenta Builder");
 
     React.useEffect(() => {
-        if (data.parentLoaded && data.build) {
-            let buildParts = (data.build)[0].split("&");
-            let tempName = (buildParts.find(str => str.includes("name="))?.split("name=")[1]);
-            if(tempName === undefined) tempName = "Monumenta Builder";
+        if (data.parentLoaded) {
+            let tempName = "Monumenta Builder";
+            if(data.build) {
+                let buildParts = (data.build)[0].split("&");
+                tempName = (buildParts.find(str => str.includes("name="))?.split("name=")[1]);
+                if(tempName === undefined) tempName = "Monumenta Builder";
+            }
             setText(decodeURIComponent(tempName));
             setTempText(decodeURIComponent(tempName));
             setLoaded(true);
@@ -42,6 +45,7 @@ export default function BuilderHeader(data) {
     function stopEditing(){
         // react state is async so i need... multiple layers of temporary text
         let reallyTempText = tempText;
+        console.log(1, reallyTempText);
         if(reallyTempText.trim() == "") {
             reallyTempText = "Monumenta Builder";
         }

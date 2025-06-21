@@ -314,7 +314,7 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         event.target.value = "Copied!";
         event.target.classList.add("fw-bold");
         setTimeout(() => { event.target.value = "Copy link for Discord"; event.target.classList.remove("fw-bold") }, 3000);
-        let tempBuildName = (buildName ? buildName + " - " : "") + "Monumenta Builder"
+        let tempBuildName = buildName ? buildName : "Monumenta Builder"
 
         if (!navigator.clipboard) {
             window.alert("Couldn't copy build to clipboard. Sadness. :(");
