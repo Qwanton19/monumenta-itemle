@@ -309,6 +309,24 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
         });
     }
 
+    function copyBuildDiscord(event) {
+        let baseUrl = `${window.location.origin}/builder/`;
+        event.target.value = "Copied!";
+        event.target.classList.add("fw-bold");
+        setTimeout(() => { event.target.value = "Copy link for Discord"; event.target.classList.remove("fw-bold") }, 3000);
+        let tempBuildName = (buildName ? buildName + " - " : "") + "Monumenta Builder"
+
+        if (!navigator.clipboard) {
+            window.alert("Couldn't copy build to clipboard. Sadness. :(");
+            return;
+        }
+        navigator.clipboard.writeText(`[${tempBuildName}](${baseUrl}${makeBuildString()})`).then(function () {
+            console.log('Copying to clipboard was successful!');
+        }, function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+
     function getEquipName(type) {
         if (!build) return undefined
         let buildParts = decodeURI(build).split("&");
@@ -551,6 +569,11 @@ export default function BuildForm({ update, build, parentLoaded, itemData, items
                 <div className="col-4 col-md-3 col-lg-2 text-center">
                     <button type="button" className={styles.shareButton} id="share" onClick={copyBuild}>
                         <TranslatableText identifier="builder.buttons.share"></TranslatableText>
+                    </button>
+                </div>
+                <div className="col-4 col-md-3 col-lg-2 text-center">
+                    <button type="button" className={styles.shareButton} id="copyLinkForDiscord" onClick={copyBuildDiscord}>
+                        <TranslatableText identifier="builder.buttons.copyLinkForDiscord"></TranslatableText>
                     </button>
                 </div>
                 <div className="col-4 col-md-3 col-lg-2 text-center">
