@@ -45,7 +45,6 @@ export default function BuilderHeader(data) {
     function stopEditing(){
         // react state is async so i need... multiple layers of temporary text
         let reallyTempText = tempText;
-        console.log(1, reallyTempText);
         if(reallyTempText.trim() == "") {
             reallyTempText = "Monumenta Builder";
         }
