@@ -6,6 +6,7 @@ import Axios from 'axios';
 import AuthProvider from '../utils/authProvider';
 import Fs from 'fs/promises';
 import extras from '../public/items/extras.json';
+import BuilderHeader from '../components/items/builderHeader';
 
 function getLinkPreviewDescription(build, itemData) {
     if (!build) return ""
@@ -30,8 +31,26 @@ function getLinkPreviewDescription(build, itemData) {
     return res;
 }
 
+function getBuildName(build, builderHeaderText) {
+    if(builderHeaderText === "Monumenta Builder") return "";
+    if(builderHeaderText !== undefined) return builderHeaderText + " - ";
+    // console.log("getting build name from ",build)
+    if (!build) return "";
+    const buildParts = build[0].split("&");
+    let buildName = buildParts.find(str => str.includes("name="))?.split("name=")[1];
+    if(buildName === undefined) return "";
+    buildName = decodeURIComponent(buildName);
+    return buildName + " - ";
+}
+
 export default function Builder({ build, itemData }) {
+    const [builderHeaderText, setBuilderHeaderText] = React.useState("Monumenta Builder");
     const [itemsToDisplay, setItemsToDisplay] = React.useState({});
+
+    // used for a weird logical reacharound to trigger a form "update" from builderheader
+    // out of the ways i could have done it, this is the least bad
+    const [updateLink, setUpdateLink] = React.useState(false);
+
     function change(itemData) {
         setItemsToDisplay(itemData);
     }
@@ -106,29 +125,31 @@ export default function Builder({ build, itemData }) {
     ];
     const magicStats = [
         { type: "magicDamagePercent", name: "builder.stats.magic.magicDamagePercent", percent: true },
-        { type: "spellPowerPercent", name: "builder.stats.magic.spellPowerPercent", percent: true },
+        // { type: "spellPowerPercent", name: "builder.stats.magic.spellPowerPercent", percent: true }, 
+        // technically for consistency having this ^ line here doesn't make sense because it's like if
+        // melee stats listed "weapon base attack damage" as a line
+        // but i might re add it anyway if people don't like it being removed
+
+        // one of these two gets hidden later depending on if potion damage exists
+        // spell is only for wands, potion is only for alch bags
         { type: "spellDamage", name: "builder.stats.magic.spellDamage", percent: true },
-        { type: "spellCooldownPercent", name: "builder.stats.magic.spellCooldownPercent", percent: true },
-        { type: "potionDamage", name: "builder.stats.magic.potionDamage", percent: false}
+        { type: "potionDamage", name: "builder.stats.magic.potionDamage", percent: false },
+        { type: "spellCooldownPercent", name: "builder.stats.magic.spellCooldownPercent", percent: true }
     ];
 
 
     return (
         <div className="container-fluid">
             <Head>
-                <title>Monumenta Builder</title>
+                <title>{getBuildName(build, builderHeaderText) + "Monumenta Builder"}</title>
                 <meta property="og:site_name" content="ODE TO MISERY" />
                 <meta property="og:image" content="/favicon.ico" />
                 <meta name="description" content={`${getLinkPreviewDescription(build, itemData)}`} />
                 <meta name="keywords" content="Monumenta, Minecraft, MMORPG, Items, Builder" />
             </Head>
             <main>
-                <div className="row mb-5">
-                    <div className="col-12">
-                        <h1 className="text-center">Monumenta Builder</h1>
-                    </div>
-                </div>
-                <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData}></BuildForm>
+                <BuilderHeader text={builderHeaderText} setText={setBuilderHeaderText} parentLoaded={parentLoaded} build={build} setUpdateLink={setUpdateLink}/>
+                <BuildForm update={change} build={build} parentLoaded={parentLoaded} itemData={itemData} itemsToDisplay={itemsToDisplay} buildName={builderHeaderText} updateLink={updateLink} setUpdateLink={setUpdateLink}></BuildForm>
                 <div className="row justify-content-center mb-2">
                     <div className="col-auto text-center border border-dark mx-2 py-2">
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.misc"></TranslatableText></h5>
@@ -218,12 +239,16 @@ export default function Builder({ build, itemData }) {
                         <h5 className="text-center fw-bold mb-0"><TranslatableText identifier="builder.statCategories.magic"></TranslatableText></h5>
                         <h6 className="text-center fw-bold">&nbsp;</h6>
                         {
-                            magicStats.map(stat =>
-                                (itemsToDisplay[stat.type] !== undefined) ?
+                            magicStats.map(stat => {
+                                return (
+                                    itemsToDisplay[stat.type] !== undefined
+                                    && (stat.type != "potionDamage" || itemsToDisplay.spellDamage == 100) // only show potion damage if spell damage is 100% (default)
+                                    && (stat.type != "spellDamage" || itemsToDisplay.potionDamage == 0) // only show spell damage if potion damage is 0
+                                ) ?
                                     <div key={stat.type}>
                                         <p className="mb-1 mt-1"><b><TranslatableText identifier={stat.name}></TranslatableText>: </b>{itemsToDisplay[stat.type]}{stat.percent ? "%" : ""}</p>
                                     </div> : ""
-                            )
+                            })
                         }
                     </div>
                 </div>
@@ -255,6 +280,17 @@ export async function getServerSideProps(context) {
     }
     let build = context.query?.build ? context.query.build : null;
 
+    // hardcoded exception for Truest North
+    for(let i=1;i<=4;i++) {
+        itemData["Truest North-"+i] = itemData["Truest North-"+i+" (compass)"]
+        delete itemData["Truest North-"+i+" (compass)"]
+        delete itemData["Truest North-"+i+" (shears)"]
+    }
+
+    // hardcoded exception for Carcano 91/38
+    itemData["Carcano 9138"] = itemData["Carcano 91/38"];
+    delete itemData["Carcano 91/38"];
+
     // Add OTM extra info based on item's name
     // (so that it gets copied the same to each masterwork level)
     for (const item in itemData) {
@@ -274,7 +310,7 @@ export async function getServerSideProps(context) {
                 itemData[mwExName].name = exName;
                 delete itemData[item];
             }
-            }
+        }
         switch (itemStats.location){
           case "Skr":
             itemData[item].location = "Silver Knight's Remnants";

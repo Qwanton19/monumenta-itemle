@@ -190,4 +190,4 @@ class StatFormatter {
     }
 }
 
-module.exports = StatFormatter;
+export default StatFormatter;

@@ -53,6 +53,7 @@ const SelectInput = (data) => {
                         neutral80: "white"
                     },
                 })}
+                onChange={data.onChange}
             />
         </div>
     )

@@ -19,16 +19,17 @@ function extractFilterValues(data, baseKey) {
 
 function getRelevantItems(data, itemData, exaltedNameList) {
     let items = Object.keys(itemData);
+    items = items.filter(name => itemData[name].base_item != 'Written Book');
 
     console.log("Data", data);
 
     if (data.searchName) {
         // Check if the user inputted any "|" to search for multiple item names at once.
         let names = data.searchName.split("|").map(name => name.toLowerCase().trim());
-        items = items.filter(name => {
+        items = items.filter(key => {
             let result = false;
             names.forEach(term => {
-                if (name.toLowerCase().includes(term)) {
+                if (itemData[key].name.toLowerCase().includes(term)) {
                     result = true;
                     return;
                 }
@@ -36,7 +37,7 @@ function getRelevantItems(data, itemData, exaltedNameList) {
             return result;
         });
     }
-    items = items.filter(name => itemData[name].base_item != 'Written Book');
+
     if (data.searchLore) {
         items = items.filter(name => itemData[name].lore?.toLowerCase().includes(data.searchLore.toLowerCase()))
     }
@@ -111,7 +112,7 @@ function getRelevantItems(data, itemData, exaltedNameList) {
             let attributeName = stat.split(" ").map(part => part.toLowerCase()).join("_");
             attributeName = (attributeName.includes("_%")) ? attributeName.replace("_%", "_percent") : attributeName += "_flat";
             items = items.filter(name => itemData[name].type == "Charm" && itemData[name].stats[attributeName] != undefined);
-            items = items.sort((item1, item2) => ((itemData[item2].stats[attributeName] || 0)  - (itemData[item1].stats[attributeName] || 0)));
+            items = items.sort((item1, item2) => ((itemData[item2].stats[attributeName].value || 0)  - (itemData[item1].stats[attributeName].value || 0)));
         });
     }
 
@@ -253,6 +254,13 @@ export async function getServerSideProps(context) {
             })
     } else {
         itemData = JSON.parse(await Fs.readFile('public/items/itemData.json'));
+    }
+
+    // hardcoded exemption for Truest North
+    for(let i=1;i<=4;i++) {
+        itemData["Truest North-"+i] = itemData["Truest North-"+i+" (compass)"]
+        delete itemData["Truest North-"+i+" (compass)"]
+        delete itemData["Truest North-"+i+" (shears)"]
     }
 
     let exaltedNameList = [];

@@ -78,7 +78,6 @@
     "items.enchant.arcaneThrust": "Your attacks damage all enemies 3 blocks in front of you, in a 0.6-block-wide line for (1 + melee damage dealt * level / (level + 1)).",
     "items.enchant.bleeding": "Applies Bleed for 5 seconds to mobs struck by the weapon. Bleed applies (level * 10%) slowness and weakness to mobs under 50% HP.",
     "items.enchant.quake": "When you kill an enemy with melee, nearby enemies in a 3 block cube take (level * 10%) of the damage. Fire/Thunder/Ice aspect, Decay, and Bleed apply to affected mobs.",
-    "items.enchant.impact": "For the next two seconds after hitting a mob, if it hits a wall or falls 3+ blocks, deal (level * 10%) of the initial attack's damage.",
     "items.enchant.flame": "Projectiles set enemies on fire for 5 seconds.",
     "items.enchant.frost": "Inflicts 20% Slowness for 4 seconds to the target. Blazes take +1 extra damage.",
     "items.enchant.spark": "50% chance to stun targets for 0.5 seconds. Guardians and Golems take +1 extra damage.",
@@ -175,13 +174,18 @@
     
 
     "builder.misc.situationals": "Situationals",
+    "builder.misc.classAbilityBuffs": "Class Ability Buffs",
     "builder.misc.maxHealthPercent": "Max Health Percent",
     "builder.misc.situationalCap": "Situational Cap",
+    "builder.misc.region": "Region",
 
     "builder.buttons.recalculate": "Recalculate",
     "builder.buttons.share": "Share",
+    "builder.buttons.copyLinkForDiscord": "Copy link for Discord",
 
     "builder.charms.select": "Select Charms",
+
+    "builder.info.noSituationals": "(no situationals to display)",
 
     "builder.errors.corruption": "YOU HAVE MORE THAN ONE CURSE OF CORRUPTION ITEM",
     "builder.errors.twoHanded": "YOU ARE USING A TWO HANDED MAINHAND WITH A NON WEIGHTLESS OFFHAND",

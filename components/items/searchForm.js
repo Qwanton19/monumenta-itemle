@@ -25,7 +25,7 @@ export default function SearchForm({ update, itemData }) {
     const charmClasses = ["Alchemist", "Mage", "Warlock", "Rogue", "Warrior",
         "Cleric", "Scout", "Shaman", "Generalist"];
     let sortableStats = [];
-    let regions = [];
+    let regions = ["Valley", "Isles", "Ring"];
     let tiers = [];
     let locations = [];
     let pois = [];
@@ -103,7 +103,7 @@ export default function SearchForm({ update, itemData }) {
     }
 
     generateSortableItemStats(itemData);
-    generateRegions();
+    // generateRegions();
     generateTiers(itemData);
     generateSortableCharmStats(itemData);
     generateLocations(itemData);
@@ -127,7 +127,7 @@ export default function SearchForm({ update, itemData }) {
             <input type="text" name="searchName" className={styles.searchField} placeholder="Search Name" />
             <input type="text" name="searchLore" className={styles.searchField} placeholder="Search Lore" />
             <div>
-                <input className={styles.addFilterButton} type='button' value='＋' onClick={addFilter} />
+                <input className={styles.addFilterButton} type='button' value='+' onClick={addFilter} />
                 <input className={styles.submitButton} type="submit" />
                 <input className={styles.warningButton} type="reset" />
             </div>
@@ -150,14 +150,18 @@ export default function SearchForm({ update, itemData }) {
         });
     }
 
-    function generateRegions() {
+    /* function generateRegions() {
         regions = [];
-        let uniqueRegions = {};
+        let uniqueRegions = {
+            Valley: 1,
+            Isles: 1,
+            Ring: 1
+        };
         Object.keys(itemData).map(item => itemData[item].region).filter(regionName => regionName != undefined).forEach(regionName => {
             uniqueRegions[regionName] = 1;
         });
         Object.keys(uniqueRegions).forEach(regionName => regions.push(regionName));
-    }
+    } */
 
     function generateTiers(itemData) {
         tiers = [];

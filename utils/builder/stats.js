@@ -32,14 +32,29 @@ class Stats {
             inure: { enabled: enabledBoxes.inure, level: 0 },
             steadfast: { enabled: enabledBoxes.steadfast, level: 0 },
             guard: { enabled: enabledBoxes.guard, level: 0 },
+            second_wind: { enabled: enabledBoxes.second_wind, level: 0 },
             ethereal: { enabled: enabledBoxes.ethereal, level: 0 },
             reflexes: { enabled: enabledBoxes.reflexes, level: 0 },
             evasion: { enabled: enabledBoxes.evasion, level: 0 },
             tempo: { enabled: enabledBoxes.tempo, level: 0 },
-            cloaked: { enabled: enabledBoxes.cloaked, level: 0},
-            secondwind: { enabled: enabledBoxes.secondwind, level: 0 },
+            cloaked: { enabled: enabledBoxes.cloaked, level: 0 },
+
+            smite: { enabled: enabledBoxes.smite, level: 0 },
+            duelist: { enabled: enabledBoxes.duelist, level: 0 },
+            slayer: { enabled: enabledBoxes.slayer, level: 0 },
+            point_blank: { enabled: enabledBoxes.point_blank, level: 0 },
+            sniper: { enabled: enabledBoxes.sniper, level: 0 },
+            first_strike: { enabled: enabledBoxes.first_strike, level: 0 },
+            regicide: { enabled: enabledBoxes.regicide, level: 0 },
+            trivium: { enabled: enabledBoxes.trivium, level: 0 },
+            stamina: { enabled: enabledBoxes.stamina, level: 0 },
+            technique: { enabled: enabledBoxes.technique, level: 0 },
+            abyssal: { enabled: enabledBoxes.abyssal, level: 0 },
+            // retaliation is separate
+
             adaptability: { enabled: true, level: 0 }
         };
+
         this.tenacity = (formData.tenacity) ? formData.tenacity : 0;
         this.vitality = (formData.vitality) ? formData.vitality : 0;
         this.vigor = (formData.vigor) ? formData.vigor : 0;
@@ -47,7 +62,8 @@ class Stats {
         this.perspicacity = (formData.perspicacity) ? formData.perspicacity : 0;
 
         this.currentHealthPercent = (formData.health) ? new Percentage(formData.health) : new Percentage(100);
-        this.situationalCap = (formData.situationalCap) ? formData.situationalCap : 30;
+        this.situationalCap = (formData.region == 1) ? 20 : 30;
+        this.damageInfusionsMultiplier = 0.75 + 0.25 * (formData.region || 3); // stupid fucking stateful react jank bullshit makes half the form not exist upon clicking reset so i have to have a default to avoid NaNs -LC
 
         this.extraDamageMultiplier = 1;
         this.extraResistanceMultiplier = new Percentage(100);
@@ -89,74 +105,181 @@ class Stats {
     }
 
     calculateOffenseStats() {
-        if (this.enabledBoxes.versatile) {
-            let extraAttackDamagePercent = (this.projectileDamagePercent.perc - 100) * 0.5;
-            let extraProjectileDamagePercent = (this.attackDamagePercent.perc - 100) * 0.4;
-            this.attackDamagePercent.add(extraAttackDamagePercent);
-            this.projectileDamagePercent.add(extraProjectileDamagePercent);
-        }
+        // as of additive, "class damage" is a separate category for damage that is added together and then multiplied by gear damage 
+        // flat damage is added after all multipliers are calculated
+        let classDamagePercent = new Percentage(100);
+        let classAttackDamagePercent = new Percentage(100);
+        let classProjectileDamagePercent = new Percentage(100);
+        let classMagicDamagePercent = new Percentage(100);
+        let flatAttackDamage = 0;
+
+        // damage situationals
+
+        let firstStrikeSit = (this.situationals.first_strike.enabled) ? 10 * this.situationals.first_strike.level : 0;
+        let regicideSit = (this.situationals.regicide.enabled) ? 10 * this.situationals.regicide.level : 0;
+        let triviumSit = (this.situationals.trivium.enabled) ? 10 * this.situationals.trivium.level : 0;
+        let staminaSit = (this.situationals.stamina.enabled) ? 10 * this.situationals.stamina.level : 0;
+        let techniqueSit = (this.situationals.technique.enabled) ? 10 * this.situationals.technique.level : 0;
+        let abyssalSit = (this.situationals.abyssal.enabled) ? 10 * this.situationals.abyssal.level : 0;
 
         // Melee Stats
-        this.attackDamagePercent.add(1.5 * Number(this.vigor));
-        let attackDamage = this.sumNumberStat(this.itemStats.mainhand, "attack_damage_base", this.attackDamage)
+
+        // base damage
+        let attackDamageBase = this.sumNumberStat(this.itemStats.mainhand, "attack_damage_base", this.attackDamage);
+        ["smite","duelist","slayer"].forEach(specialist => {
+            if(this.enabledBoxes[specialist]) attackDamageBase += this.sumEnchantmentStat(this.itemStats.mainhand, specialist, 2);
+        })
+
+        // gear damage
+        this.attackDamagePercent.add(this.damageInfusionsMultiplier * Number(this.vigor));
+        this.attackDamagePercent.add(firstStrikeSit);
+        this.attackDamagePercent.add(regicideSit);
+        this.attackDamagePercent.add(staminaSit);
+        this.attackDamagePercent.add(abyssalSit);
+
+        // class damage
+        if (this.enabledBoxes.weaponmastery) {
+            let mainhandType = this.fullItemData.mainhand.type;
+            if (this.fullItemData.mainhand.type == "Axe") {
+                classAttackDamagePercent.add(10);
+            } else if (this.fullItemData.mainhand.base_item?.match(/Sword/i)) { // sword wands are still swords but count as wands in item type -LC
+                classAttackDamagePercent.add(10); 
+            }
+        }
+        if (this.enabledBoxes.versatile) {
+            classAttackDamagePercent.add((this.projectileDamagePercent.perc - 100) * 0.5);
+        }
+        if (
+            (this.enabledBoxes.dethroner_boss || this.enabledBoxes.dethroner_elite)
+            && this.fullItemData.mainhand.base_item?.match(/Sword/i)
+            && this.fullItemData.offhand.type == "Offhand Sword"
+        ) {
+            classAttackDamagePercent.add(this.enabledBoxes.dethroner_boss ? 15 : 30); // boss takes priority
+        }
+        
+        // flat damage
+        // im absolutely not adding the ice aspect flat damage for blazes lmao
+        if (this.enabledBoxes.weaponmastery) {
+            let mainhandType = this.fullItemData.mainhand.type;
+            if (mainhandType == "Axe") {
+                flatAttackDamage += 4;
+            } else if (mainhandType == "Mainhand Sword") {
+                flatAttackDamage += 1;
+            }
+        }
+
+        // final damage
+        let attackDamage = attackDamageBase
             * this.attackDamagePercent.val
-            //* (1 + 0.0075 * Number(this.vigor))
             * ((this.currentHealthPercent.perc <= 50) ? 1 - 0.1 * this.crippling : 1)
+            * (classDamagePercent.val + classAttackDamagePercent.val - 1) // general class damage and class attack damage are added, the -1 is because they both start at 1
             * this.extraDamageMultiplier;
-        this.attackDamagePercent = this.attackDamagePercent.toFixedPerc(2);
-        this.attackDamage = attackDamage.toFixed(2);
-        let attackSpeed = (this.sumNumberStat(this.itemStats.mainhand, "attack_speed_base", this.attackSpeed) + this.attackSpeedFlatBonus) * this.attackSpeedPercent.val * this.extraAttackSpeedMultiplier;
+        let attackDamageCrit = this.cumbersome ? attackDamage : (attackDamage * 1.5);
+        attackDamage += flatAttackDamage;
+        attackDamageCrit += flatAttackDamage; // this is not a bug, flat damage is added after the crit multiplier
+
+        // attack speed
+        let attackSpeed = (this.sumNumberStat(this.itemStats.mainhand, "attack_speed_base", this.attackSpeed) + this.attackSpeedFlatBonus)
+            * this.attackSpeedPercent.val 
+            * this.extraAttackSpeedMultiplier;
+        let attackCritSpeed = Math.min(attackSpeed, 5/3);
+
+        // display
         this.attackSpeedPercent = this.attackSpeedPercent.toFixedPerc(2);
         this.attackSpeed = attackSpeed.toFixed(2);
-        let attackDamageCrit = this.cumbersome ? attackDamage : (attackDamage * 1.5)
+        this.attackDamagePercent = this.attackDamagePercent.toFixedPerc(2);
+        this.attackDamage = attackDamage.toFixed(2);
         this.attackDamageCrit = attackDamageCrit.toFixed(2);
         this.iframeDPS = ((attackSpeed >= 2) ? attackDamage * 2 : attackDamage * attackSpeed).toFixed(2);
         this.iframeCritDPS = ((attackSpeed >= 2) ? attackDamageCrit * 2 : attackDamageCrit * attackSpeed).toFixed(2);
-        let attackCritSpeed = 5/3;
-        if (this.attackSpeed < attackCritSpeed){
-          attackCritSpeed = this.attackSpeed;
-        }
         this.critSpamDPS = (attackCritSpeed * attackDamageCrit).toFixed(2);
 
         // Projectile Stats
-        this.projectileDamagePercent.add(1.5*Number(this.focus));
-        let projectileDamage = this.sumNumberStat(this.itemStats.mainhand, "projectile_damage_base", this.projectileDamage)
+
+        // base damage
+        let projectileDamageBase = this.sumNumberStat(this.itemStats.mainhand, "projectile_damage_base", this.projectileDamage);
+        ["point_blank","sniper"].forEach(specialist => {
+            if(this.enabledBoxes[specialist]) projectileDamageBase += this.sumEnchantmentStat(this.itemStats.mainhand, specialist, 2);
+        })
+
+        // gear damage
+        this.projectileDamagePercent.add(this.damageInfusionsMultiplier * Number(this.focus));
+        this.projectileDamagePercent.add(firstStrikeSit); // proj fstrike is 10%*level as of june balance
+        this.projectileDamagePercent.add(regicideSit);
+        this.projectileDamagePercent.add(staminaSit);
+        this.projectileDamagePercent.add(0.75 * techniqueSit); // proj technique is 7.5%*level
+        this.projectileDamagePercent.add(abyssalSit);
+
+        // class damage
+        if (this.enabledBoxes.versatile) {
+            classProjectileDamagePercent.add((this.attackDamagePercent.perc - 100) * 0.4);
+        }
+
+        // flat damage
+        // does projectile even have any?
+
+        // misc
+        let projectileSpeed = this.sumNumberStat(this.itemStats.mainhand, "projectile_speed_base", this.projectileSpeed) * this.projectileSpeedPercent.val;
+        let throwRate = this.sumNumberStat(this.itemStats.mainhand, "throw_rate_base", this.throwRate) * this.throwRatePercent.val;
+
+        // final damage
+        let projectileDamage = projectileDamageBase
             * this.projectileDamagePercent.val
+            * (classDamagePercent.val + classProjectileDamagePercent.val - 1) // general class damage and class proj damage are added, the -1 is because they both start at 1
             * this.extraDamageMultiplier;
+
+        // display
         this.projectileDamagePercent = this.projectileDamagePercent.toFixedPerc(2);
         this.projectileDamage = projectileDamage.toFixed(2);
-        let projectileSpeed = this.sumNumberStat(this.itemStats.mainhand, "projectile_speed_base", this.projectileSpeed) * this.projectileSpeedPercent.val;
         this.projectileSpeedPercent = this.projectileSpeedPercent.toFixedPerc(2);
         this.projectileSpeed = projectileSpeed.toFixed(2);
-        let throwRate = this.sumNumberStat(this.itemStats.mainhand, "throw_rate_base", this.throwRate) * this.throwRatePercent.val;
         this.throwRatePercent = this.throwRatePercent.toFixedPerc(2);
         this.throwRate = throwRate.toFixed(2);
 
         // Magic Stats
-        this.spellPowerPercent.add(this.sumNumberStat(this.itemStats.mainhand, "spell_power_base", 0));
-        this.magicDamagePercent.add(1.5*Number(this.perspicacity));
-        this.spellDamage = (
-            this.spellPowerPercent.duplicate()
-                .mulP(this.magicDamagePercent)
-                .mul(this.extraDamageMultiplier, false)
-        ).toFixedPerc(2);
-        let potionDamage = this.sumNumberStat(this.itemStats.mainhand, "potion_damage_flat", this.magicDamage)
-            * this.magicDamagePercent.val
-            * this.extraDamageMultiplier;
-        this.potionDamage = potionDamage;
-        this.spellPowerPercent = this.spellPowerPercent.toFixedPerc(2);
-        this.magicDamagePercent = this.magicDamagePercent.toFixedPerc(2);
 
-        this.spellCooldownPercent = this.spellCooldownPercent
-            .mul(Math.pow(0.95, this.aptitude + this.ineptitude), false)
-            .toFixedPerc(2);
+        // base damage
+        this.spellPowerPercent.add(this.sumNumberStat(this.itemStats.mainhand, "spell_power_base", 0));
+        let potionDamageBase = this.sumNumberStat(this.itemStats.mainhand, "potion_damage_flat", 0);
+
+        // gear damage
+        this.magicDamagePercent.add(this.damageInfusionsMultiplier * Number(this.perspicacity));
+        this.magicDamagePercent.add(regicideSit);
+        this.magicDamagePercent.add(triviumSit);
+        this.magicDamagePercent.add(techniqueSit);
+        this.magicDamagePercent.add(abyssalSit);
+        if (this.fullItemData.mainhand?.stats?.alchemical_utensil) {
+            this.magicDamagePercent.add(firstStrikeSit);
+        }
+
+        // class damage
+
+        // flat damage
+
+        // misc
+        this.spellCooldownPercent = this.spellCooldownPercent.mul(Math.pow(0.95, this.aptitude), false);
+        this.spellCooldownPercent = this.spellCooldownPercent.mul(Math.pow(1.05, this.ineptitude), false);
+
+        // final damage
+        let magicMultiplier = this.magicDamagePercent.val
+            * (classDamagePercent.val + classMagicDamagePercent.val - 1) // general class damage and class magic damage are added, the -1 is because they both start at 1
+            * this.extraDamageMultiplier;
+        this.spellDamage = this.spellPowerPercent.duplicate().mul(magicMultiplier, false);
+        this.potionDamage = potionDamageBase * magicMultiplier;
+
+        // display
+        this.magicDamagePercent = this.magicDamagePercent.toFixedPerc(2);
+        this.spellPowerPercent = this.spellPowerPercent.toFixedPerc(2);
+        this.spellDamage = this.spellDamage.toFixedPerc(2);
+        this.spellCooldownPercent = this.spellCooldownPercent.toFixedPerc(2);
+        this.potionDamage = this.potionDamage.toFixed(2);
     }
 
     calculateDefenseStats() {
         let drs = this.calculateDamageReductions();
 
         // Select to show either the regular dr, or dr with second wind currently active based on hp remaining
-        let drType = (this.situationals.secondwind.enabled) ? "secondwind" : "base";
+        let drType = (this.situationals.second_wind.enabled) ? "secondwind" : "base";
 
         // Regular Damage Reductions
         this.meleeDR = drs.melee[drType].toFixedPerc(2);
@@ -168,7 +291,7 @@ class Stats {
         this.ailmentDR = drs.ailment[drType].toFixedPerc(2);
 
         // Effective HP
-        if (this.situationals.secondwind.level == 0 || drType == "base") {
+        if (this.situationals.second_wind.level == 0 || drType == "base") {
             this.meleeEHP = (this.healthFinal * this.currentHealthPercent.val / (1 - drs.melee.base.val)).toFixed(2);
             this.projectileEHP = (this.healthFinal * this.currentHealthPercent.val / (1 - drs.projectile.base.val)).toFixed(2);
             this.magicEHP = (this.healthFinal * this.currentHealthPercent.val / (1 - drs.magic.base.val)).toFixed(2);
@@ -200,20 +323,37 @@ class Stats {
 
     calculateDamageTaken(noArmor, prot, fragility, protmodifier, earmor, eagility) {
         let damageTaken = {};
+        let bonusResistanceMultiplier = 1;
+        // bonus resistance is only used for class ability buffs right now -LC
+        
         damageTaken.base = ((noArmor) ? 100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, (prot * protmodifier - fragility * protmodifier)) :
             100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
 
         damageTaken.secondwind = ((noArmor) ? 100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, (prot * protmodifier - fragility * protmodifier)) :
             100 * (1 - this.worldlyProtection * 0.1) * Math.pow(0.96, ((prot * protmodifier - fragility * protmodifier) + earmor + eagility) - (0.5 * earmor * eagility / (earmor + eagility))));
-        damageTaken.secondwind *= Math.pow(0.9, this.situationals.secondwind.level);
+        damageTaken.secondwind *= Math.pow(0.9, this.situationals.second_wind.level);
+
+        if (this.enabledBoxes.weaponmastery && this.fullItemData.mainhand.base_item?.match(/Sword/i)) {
+            bonusResistanceMultiplier *= 0.9;
+        }
+
+        if (this.enabledBoxes.culling && this.fullItemData.mainhand.type == "Scythe") {
+            bonusResistanceMultiplier *= 0.9;
+        }
+
+        if (this.enabledBoxes.totemic_empowerment) {
+            bonusResistanceMultiplier *= 0.9;
+        }
 
         damageTaken.base = damageTaken.base
             * (1 - (this.tenacity * 0.005))
-            * (this.extraResistanceMultiplier.val);
+            * (this.extraResistanceMultiplier.val)
+            * bonusResistanceMultiplier;
 
         damageTaken.secondwind = damageTaken.secondwind
             * (1 - (this.tenacity * 0.005))
-            * (this.extraResistanceMultiplier.val);
+            * (this.extraResistanceMultiplier.val)
+            * bonusResistanceMultiplier;
 
         return damageTaken;
     }
@@ -258,9 +398,9 @@ class Stats {
 
         let steadfastSit = (this.situationals.steadfast.enabled) ? steadfastArmor * this.situationals.steadfast.level : 0;
 
-        let sumSits = etherealSit + tempoSit + evasionSit + reflexesSit + shieldingSit + poiseSit + inureSit + guardSit + cloakedSit;
         let sumArmorSits = shieldingSit + poiseSit + inureSit + guardSit;
         let sumAgiSits = etherealSit + tempoSit + evasionSit + reflexesSit + cloakedSit;
+        let sumSits = sumArmorSits + sumAgiSits;
 
         let armorPlusSits = armor;
         if (this.situationals.adaptability.level > 0) {
@@ -311,7 +451,8 @@ class Stats {
     }
 
     sumEnchantmentStat(itemStats, enchName, perLevelMultiplier) {
-        if (!itemStats) return (perLevelMultiplier) ? perLevelMultiplier : 0;
+        // console.log("summing up ",itemStats," value of ",enchName," with multiplier ", perLevelMultiplier)
+        if (!itemStats) return 0;
         return (itemStats[enchName]) ? Number(itemStats[enchName]) * perLevelMultiplier : 0;
     }
 
@@ -327,16 +468,19 @@ class Stats {
         this.speedPercent = this.speedPercent
             .mul((this.speedFlat) / 0.1, false)
             .mul(((this.currentHealthPercent.perc <= 50) ? 1 - 0.1 * this.crippling : 1), false)
+            .mul(this.enabledBoxes.totemic_empowerment ? 1.1 : 1, false)
             .mul(this.extraSpeedMultiplier, false)
             .toFixedPerc(2);
 
         // Fix knockback resistance to be percentage and cap at 100
+        if (this.enabledBoxes.formidable) this.knockbackRes += 2;
         this.knockbackRes = (this.knockbackRes > 10) ? 100 : this.knockbackRes * 10;
         // Calculate effective healing rate
         let effHealingNonRounded = new Percentage(((20 / this.healthFinal) * this.healingRate.val), false);
         this.effHealingRate = effHealingNonRounded.toFixedPerc(2);
         // Fix regen to the actual value per second
-        let regenPerSecNonRounded = 0.33 * Math.sqrt(this.regenPerSec) * this.healingRate.val;
+        let regenPerSecNonRounded = 1/3 * Math.sqrt(this.baseRegenLevel) * this.healingRate.val;
+        regenPerSecNonRounded -= 1/3 * this.baseVeilcurseLevel;
         this.regenPerSec = regenPerSecNonRounded.toFixed(2);
         // Calculate %hp regen per sec
         this.regenPerSecPercent = new Percentage(((regenPerSecNonRounded / this.healthFinal)), false).toFixedPerc(2);
@@ -373,7 +517,8 @@ class Stats {
                 this.healingRate
                     .add(this.sumEnchantmentStat(itemStats, "curse_of_anemia", -10))
                     .add(this.sumEnchantmentStat(itemStats, "sustenance", 10));
-                this.regenPerSec += this.sumEnchantmentStat(itemStats, "regeneration", 1);
+                this.baseRegenLevel += this.sumEnchantmentStat(itemStats, "regeneration", 1);
+                this.baseVeilcurseLevel += this.sumEnchantmentStat(itemStats, "curse_of_the_veil", 1);
                 this.lifeDrainOnCrit += this.sumEnchantmentStat(itemStats, "life_drain", 1);
 
                 this.meleeProt += this.sumNumberStat(itemStats, "melee_protection");
@@ -399,11 +544,11 @@ class Stats {
                 this.magicDamagePercent.add(this.sumNumberStat(itemStats, "magic_damage_percent"));
 
                 this.aptitude += this.sumEnchantmentStat(itemStats, "aptitude", 1);
-                this.ineptitude += this.sumEnchantmentStat(itemStats, "ineptitude", -1);
+                this.ineptitude += this.sumEnchantmentStat(itemStats, "ineptitude", 1);
 
                 this.worldlyProtection += this.sumNumberStat(itemStats, "worldly_protection");
 
-                this.situationals.shielding.level += this.sumNumberStat(itemStats, "shielding");
+                /* this.situationals.shielding.level += this.sumNumberStat(itemStats, "shielding");
                 this.situationals.poise.level += this.sumNumberStat(itemStats, "poise");
                 this.situationals.inure.level += this.sumNumberStat(itemStats, "inure");
                 this.situationals.steadfast.level += this.sumNumberStat(itemStats, "steadfast");
@@ -414,7 +559,11 @@ class Stats {
                 this.situationals.tempo.level += this.sumNumberStat(itemStats, "tempo");
                 this.situationals.cloaked.level += this.sumNumberStat(itemStats, "cloaked");
                 this.situationals.adaptability.level += this.sumNumberStat(itemStats, "adaptability");
-                this.situationals.secondwind.level += this.sumNumberStat(itemStats, "second_wind");
+                this.situationals.second_wind.level += this.sumNumberStat(itemStats, "second_wind"); */
+
+                Object.keys(this.situationals).forEach(situ => {
+                    this.situationals[situ].level += this.sumNumberStat(itemStats, situ);
+                })
 
                 this.crippling += this.sumNumberStat(itemStats, "curse_of_crippling");
                 this.corruption += this.sumNumberStat(itemStats, "curse_of_corruption");
@@ -438,7 +587,8 @@ class Stats {
         this.currentHealth = 20,
         this.healingRate = new Percentage(100),
         this.effHealingRate = new Percentage(100).toFixedPerc(2),
-        this.regenPerSec = 0,
+        this.baseRegenLevel = 0,
+        this.baseVeilcurseLevel = 0,
         this.regenPerSecPercent = new Percentage(0),
         this.lifeDrainOnCrit = 0,
         this.lifeDrainOnCritPercent = new Percentage(0),
