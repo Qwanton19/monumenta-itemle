@@ -31,9 +31,12 @@ function getLinkPreviewDescription(build, itemData) {
     return res;
 }
 
-function getBuildName(build, builderHeaderText) {
-    if(builderHeaderText === "Monumenta Builder") return "";
-    if(builderHeaderText !== undefined) return builderHeaderText + " - ";
+function getBuildName(build, builderHeaderText, parentLoaded) {
+    // if the page hasn't fully loaded yet, get it from the url (since builderheadertext is still default)
+    // if the page has been loaded and builderheadertext is undefined, get it from the url
+    // otherwise get it from builderheadertext
+    if(parentLoaded && builderHeaderText === "Monumenta Builder") return "";
+    if(parentLoaded && builderHeaderText !== undefined) return builderHeaderText + " - ";
     // console.log("getting build name from ",build)
     if (!build) return "";
     const buildParts = build[0].split("&");
@@ -141,7 +144,7 @@ export default function Builder({ build, itemData }) {
     return (
         <div className="container-fluid">
             <Head>
-                <title>{getBuildName(build, builderHeaderText) + "Monumenta Builder"}</title>
+                <title>{getBuildName(build, builderHeaderText, parentLoaded) + "Monumenta Builder"}</title>
                 <meta property="og:site_name" content="ODE TO MISERY" />
                 <meta property="og:image" content="/favicon.ico" />
                 <meta name="description" content={`${getLinkPreviewDescription(build, itemData)}`} />
