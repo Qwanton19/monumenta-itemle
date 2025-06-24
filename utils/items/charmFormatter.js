@@ -25,7 +25,7 @@ class CharmFormatter {
         return (
             (stat.includes("cooldown") && (!stat.includes("reduction") && (!stat.includes("cap_flat"))))
             || stat.includes("price")
-            || stat.includes("threshold")
+            || (stat.includes("threshold") && (!stat.includes("rejuvenation")) && (!stat.includes("coup")) && (!stat.includes("meteor")))
             || stat.includes("stacks_needed_for_activation_flat") // ok that one's a little gross I admit
             || stat.includes("self_damage")
             || stat.includes("delay")
