@@ -109,12 +109,45 @@ const categoryTypeMap = {
 
 
 export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
+    const [isLoading, setIsLoading] = React.useState(true);
     const [selectedCategory, setSelectedCategory] = React.useState(null);
     const [selectedItemKey, setSelectedItemKey] = React.useState(null);
     const [currentItemSelection, setCurrentItemSelection] = React.useState(null);
     const [guessedItems, setGuessedItems] = React.useState([]);
     const [isWin, setIsWin] = React.useState(false);
     const [shareText, setShareText] = React.useState("Share");
+
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedStateJSON = localStorage.getItem('itemleGameState');
+            if (savedStateJSON) {
+                try {
+                    const savedState = JSON.parse(savedStateJSON);
+                    if (savedState.day === itemleDayNumber) {
+                        setGuessedItems(savedState.guesses);
+                        setIsWin(savedState.win);
+                    } else {
+                        localStorage.removeItem('itemleGameState');
+                    }
+                } catch (e) {
+                    console.error("Failed to parse saved game state:", e);
+                    localStorage.removeItem('itemleGameState');
+                }
+            }
+        }
+        setIsLoading(false);
+    }, [itemleDayNumber]);
+
+    React.useEffect(() => {
+        if (!isLoading && typeof window !== 'undefined') {
+            const gameState = {
+                day: itemleDayNumber,
+                guesses: guessedItems,
+                win: isWin,
+            };
+            localStorage.setItem('itemleGameState', JSON.stringify(gameState));
+        }
+    }, [guessedItems, isWin, itemleDayNumber, isLoading]);
 
     const MAX_GUESSES = 6;
     const isGameFinished = isWin || guessedItems.length >= MAX_GUESSES;
@@ -209,6 +242,10 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
             console.error("Failed to copy text: ", err);
         });
     };
+
+    if (isLoading) {
+        return null;
+    }
 
     return (
         <div className="container-fluid px-4">
