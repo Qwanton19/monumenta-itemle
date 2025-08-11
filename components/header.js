@@ -1,11 +1,21 @@
-import HomeButton from './homeButton'
-import LanguageSelector from './languageSelector'
-import TranslatableText from './translatableText'
+import HomeButton from './homeButton';
+import LanguageSelector from './languageSelector';
+import TranslatableText from './translatableText';
 import styles from '../styles/Header.module.css';
 
 export default function Header() {
     return (
-        <header className="py-2 border-bottom border-light mb-2">
+        <header className="py-2 border-bottom border-light mb-2 position-relative">
+            <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: 'none'
+            }}>
+                <span className="fs-4 fw-bold">Monumenta Itemle</span>
+            </div>
+
             <div className="row mx-0">
                 <div className="col-2 col-md-1 col-lg-1">
                     <HomeButton />
@@ -19,5 +29,5 @@ export default function Header() {
                 </div>
             </div>
         </header>
-    )
+    );
 }

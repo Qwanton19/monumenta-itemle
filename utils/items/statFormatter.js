@@ -1,7 +1,7 @@
 import styles from '../../styles/Items.module.css'
 import TranslatableEnchant from '../../components/translatableEnchant';
 
-const Formats = {
+export const Formats = {
     "ENCHANT": 0,
     "SINGLE_ENCHANT": 1,
     "ATTRIBUTE": 2,
@@ -10,7 +10,7 @@ const Formats = {
     "BASE_STAT": 5
 }
 
-const categories = {
+export const categories = {
     "speed": [
         ...["adrenaline", "soul_speed"]
             .map(entry => ({ name: entry, format: Formats.ENCHANT })),
@@ -106,6 +106,11 @@ const categories = {
         ...["attack_damage_base", "attack_speed_base", "projectile_damage_base", "projectile_speed_base", "throw_rate_base",
             "potion_damage_flat", "potion_radius_flat"]
             .map(entry => ({ name: entry, format: Formats.BASE_STAT }))
+    ],
+    "vanilla_attributes": [
+        ...["generic.max_health", "generic.movement_speed", "generic.attack_damage",
+            "generic.knockback_resistance", "generic.armor", "generic.attack_speed"]
+            .map(entry => ({ name: entry, format: Formats.ATTRIBUTE }))
     ]
 }
 
@@ -118,75 +123,76 @@ class StatFormatter {
     }
 
     static toHumanReadable(stat, value) {
-        let humanStr = stat.name.split("_")
-            .filter(part => (part != "m" && part != "p" && part != "bow" && part != "tool"))
-            .map(part => part[0].toUpperCase() + part.substring(1))
-            .join(" ");
-        humanStr = humanStr.replace(" Of ", " of "); // curses, ashes, rage of the keter
-        humanStr = humanStr.replace(" The ", " the "); // rage of the keter, curse of the veil
-        humanStr = humanStr.replace("Jungles", "Jungle's"); // kapple
+        if (stat.name.startsWith("generic.")) {
+            const displayName = stat.name.replace("generic.", "").split("_").map(p => p[0].toUpperCase() + p.substring(1)).join(" ");
+            const isAttackSpeed = stat.name.includes("attack_speed");
+            const displayValue = isAttackSpeed ? value : value * 100;
+            const finalValue = displayValue % 1 === 0 ? displayValue : displayValue.toFixed(1);
+            return `${finalValue > 0 ? '+' : ''}${finalValue}${isAttackSpeed ? "" : "%"} ${displayName}`;
+        }
+        let humanStr = stat.name.split("_").filter(part => (part != "m" && part != "p" && part != "bow" && part != "tool")).map(part => part[0].toUpperCase() + part.substring(1)).join(" ");
+        humanStr = humanStr.replace(" Of ", " of ");
+        humanStr = humanStr.replace(" The ", " the ");
+        humanStr = humanStr.replace("Jungles", "Jungle's");
         switch (stat.format) {
-            case Formats.ENCHANT: {
-                humanStr = `${humanStr} ${value}`;
-                break;
-            }
-            case Formats.SINGLE_ENCHANT: {
-                // The level should not be displayed. humanStr is already good to go.
-                break;
-            }
-            case Formats.ATTRIBUTE: {
-                humanStr = `${(value > 0) ? "+" : ""}${value}${(humanStr.includes(" Percent") || humanStr == "Spell Power Base") ? "%" : ""} ${humanStr.replace(" Percent", "").replace(" Base", "").replace(" Flat", "")}`;
-                break;
-            }
-            case Formats.CURSE: {
-                humanStr = `${humanStr} ${value}`;
-                break;
-            }
-            case Formats.SINGLE_CURSE: {
-                // The level should not be displayed. humanStr is already good to go.
-                break;
-            }
-            case Formats.BASE_STAT: {
-                humanStr = `${value} ${humanStr.replace(" Base", "").replace(" Flat", "")}`;
-                break;
-            }
+            case Formats.ENCHANT: humanStr = `${humanStr} ${value}`; break;
+            case Formats.SINGLE_ENCHANT: break;
+            case Formats.ATTRIBUTE: humanStr = `${(value > 0) ? "+" : ""}${value}${(humanStr.includes(" Percent") || humanStr == "Spell Power Base") ? "%" : ""} ${humanStr.replace(" Percent", "").replace(" Base", "").replace(" Flat", "")}`; break;
+            case Formats.CURSE: humanStr = `${humanStr} ${value}`; break;
+            case Formats.SINGLE_CURSE: break;
+            case Formats.BASE_STAT: humanStr = `${value} ${humanStr.replace(" Base", "").replace(" Flat", "")}`; break;
         }
         return humanStr;
     }
 
-    static statStyle(stat, value, type) {
-        switch (stat.format) {
-            case Formats.ATTRIBUTE: {
-                return (value < 0) ? "negativeStat" : (stat.name == "armor" || stat.name == "agility") ? "positiveDefence" : "positiveStat";
-            }
-            case Formats.CURSE:
-            case Formats.SINGLE_CURSE: {
-                return "negativeStat";
-            }
-            case Formats.BASE_STAT: {
-                return "baseStats";
-            }
-            default: {
-                return "none";
+    static statStyle(stat, value, styles, comparisonResultEnchants) {
+        if (!styles) return '';
+        const capitalize = (s) => s && s.charAt(0).toUpperCase() + s.slice(1);
+        let colorClass = '';
+        if (comparisonResultEnchants && comparisonResultEnchants[stat.name]) {
+            colorClass = styles[`text${capitalize(comparisonResultEnchants[stat.name])}`];
+        }
+
+        let styleClass = '';
+        if (stat.name.startsWith("generic.")) {
+            styleClass = (value < 0) ? styles.negativeStat : styles.positiveStat;
+        } else {
+            switch (stat.format) {
+                case Formats.ATTRIBUTE: styleClass = (value < 0) ? styles.negativeStat : (stat.name == "armor" || stat.name == "agility") ? styles.positiveDefence : styles.positiveStat; break;
+                case Formats.CURSE: case Formats.SINGLE_CURSE: styleClass = styles.negativeStat; break;
+                case Formats.BASE_STAT: styleClass = styles.baseStats; break;
+                default: styleClass = styles.none; break;
             }
         }
+        return `${styleClass} ${colorClass}`;
     }
 
-    static formatStats(stats) {
+    static formatStats(stats, comparisonResultEnchants = null, styles = null) {
         if (stats == undefined) {
-            return "";
+            return { topEnchants: [], bottomEnchants: [], attributes: [] };
         }
-        let formattedStats = [];
+
+        let primaryStats = [];
+        let attributes = [];
 
         for (const category in categories) {
             for (const stat of categories[category]) {
                 if (stats[stat.name]) {
-                    formattedStats.push(<TranslatableEnchant key={stat.name} title={stat.name} className={styles[this.statStyle(stat, stats[stat.name], category)]}>{this.toHumanReadable(stat, stats[stat.name])}</TranslatableEnchant>);
+                    const finalClassName = this.statStyle(stat, stats[stat.name], styles, comparisonResultEnchants);
+                    const jsxElement = <TranslatableEnchant key={stat.name} title={stat.name} className={finalClassName}>{this.toHumanReadable(stat, stats[stat.name])}</TranslatableEnchant>;
+
+                    if (stat.format === Formats.ATTRIBUTE || stat.format === Formats.BASE_STAT) {
+                        attributes.push(jsxElement);
+                    } else {
+                        primaryStats.push(jsxElement);
+                    }
                 }
             }
         }
+        const topEnchants = primaryStats.slice(0, 2);
+        const bottomEnchants = primaryStats.slice(2);
 
-        return formattedStats;
+        return { topEnchants, bottomEnchants, attributes };
     }
 }
 

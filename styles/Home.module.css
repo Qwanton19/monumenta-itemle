@@ -27,10 +27,19 @@
 }
 
 .footer a {
-  display: flex;
-  justify-content: center;
+  display: inline-flex;
   align-items: center;
-  flex-grow: 1;
+}
+
+.footer-line {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.footer-line a {
+  margin-left: 4px;
+  margin-right: 4px;
 }
 
 .title a {

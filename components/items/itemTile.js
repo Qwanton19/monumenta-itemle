@@ -11,9 +11,7 @@ function camelCase(str, upper) {
 }
 
 function getItemType(item) {
-    if (item.type != undefined) {
-        return camelCase(item.type);
-    }
+    if (item.type != undefined) return camelCase(item.type);
     return "misc";
 }
 
@@ -27,45 +25,33 @@ function doesStyleExist(className) {
         let styleSheetsLength = styleSheets.length;
         for (let i = 0; i < styleSheetsLength; i++){
             let classes = styleSheets[i].cssRules;
-            if (!classes) {
-                continue;
-            }
-            
+            if (!classes) continue;
             for (let x = 0; x < classes.length; x++) {
-                if (classes[x].selectorText == `.${className}`) {
-                    return true;
-                }
+                if (classes[x].selectorText == `.${className}`) return true;
             }
         }
-    } catch (e) {
-        return false;
-    }
+    } catch (e) { return false; }
     return false;
 }
 
 function doesNameContainNonASCII(name) {
     for (let i = 0; i < name.length; i++) {
-        if (name.charCodeAt(i) > 127) {
-            return true;
-        }
+        if (name.charCodeAt(i) > 127) return true;
     }
     return false;
 }
 
 export default function ItemTile(data) {
-    const item = data.item
+    const { item, colorClasses } = data;
     const [cssClass, setCssClass] = React.useState(getItemsheetClass(item.name));
     const [baseBackgroundClass, setBaseBackgroundClass] = React.useState("monumenta-items");
 
-    // If the item name has accented characters, they are actually not present in the item's name property,
-    // but they are present in the item's key. In that case, set the name to the key.
     if (doesNameContainNonASCII(data.name)) {
         item.name = data.name;
     }
 
     React.useEffect(() => {
         if (!doesStyleExist(getItemsheetClass(item.name))) {
-            // The item doesn't have its own texture on the spritesheet, and must be defaulted to a minecraft texture.
             setBaseBackgroundClass("minecraft");
             setCssClass(`minecraft-${item['base_item'].replaceAll(" ", "-").replaceAll("_", "-").toLowerCase()}`);
         } else {
@@ -74,24 +60,59 @@ export default function ItemTile(data) {
         }
     }, [item]);
 
+    const relocatedElements = [];
+
+    if (item.location) {
+        relocatedElements.push(<p className={`${styles.infoText} m-0`} key="location">
+            <span className={`${styles[camelCase(item.location)]} ${colorClasses?.location || ''}`}>{item.location}</span>
+        </p>);
+    }
+    if (item.region) {
+        relocatedElements.push(<p className={`${styles.infoText} m-0`} key="region">
+            <span className={`${colorClasses?.region || ''}`}>{item.region}</span>
+        </p>);
+    }
+    if (item.tier) {
+        relocatedElements.push(<p className={`${styles.infoText} m-0`} key="tier">
+            <span className={`${styles[camelCase(item.tier)]} ${colorClasses?.tier || ''}`}>{item.tier}</span>
+        </p>);
+    }
+    if (item.extras?.poi) {
+        relocatedElements.push(<p className={`${styles.infoText} m-0`} key="poi">{`Found in ${item.extras.poi}`}</p>);
+    }
+
+    const relocatedInfoElement = relocatedElements.length > 0 ? (<div key="relocated-info-wrapper">{relocatedElements}</div>) : null;
+
+    let displayBaseItem = item['base_item'];
+    if (item.type) {
+        const filteredBaseWords = item['base_item'].split(' ').filter(baseWord => !item.type.split(' ').some(typeWord => typeWord.toLowerCase() === baseWord.toLowerCase()));
+        const newDisplayBaseItem = filteredBaseWords.join(' ');
+        if (newDisplayBaseItem.trim() !== "") displayBaseItem = newDisplayBaseItem;
+    }
+
     return (
         <div className={`${styles.itemTile} ${data.hidden ? styles.hidden : ""}`}>
+             <style jsx>{`
+                :global(.textGreen) { color: #28a745 !important; font-weight: bold !important; }
+                :global(.textYellow) { color: #ffc107 !important; font-weight: bold !important; }
+                :global(.textRed) { color: #dc3545 !important; font-weight: bold !important; }
+            `}</style>
             <div className={styles.imageIcon}>
                 <div className={[baseBackgroundClass, cssClass].join(" ")}></div>
             </div>
             <span className={`${styles[camelCase(item.location)]} ${(item.tier == "Tier 3" && item.region == "Ring") ? styles["tier5"] : styles[camelCase(item.tier)]} ${styles.name}`}>
                 <a href={`https://monumenta.wiki.gg/wiki/${item.name.replace(/\(.*\)/g, '').trim().replaceAll(" ", "_",)}`} target="_blank" rel="noreferrer">{item.name}</a>
             </span>
-            <span className={styles.infoText}><TranslatableText identifier={`items.type.${getItemType(item)}`}></TranslatableText>{` - ${item['base_item']} `}</span>
-            {item['original_item'] ? <span className={styles.infoText}>{`Skin for ${item['original_item']} `}</span> : ""}
-            <Enchants item={item}></Enchants>
-            <span>
-                <span className={styles.infoText}>{`${(item.region) ? item.region : ""} `}</span>
-                <span className={styles[camelCase(item.tier)]}>{item.tier}</span>
-            </span>
-            <span className={styles[camelCase(item.location)]}>{item.location}</span>
-            {item.lore ? <span className={styles.infoText}>{item.lore}</span> : ""}
-            {item.extras?.poi ? <p className={`${styles.infoText} m-0`}>{`Found in ${item.extras.poi}`}</p> : ""}
+
+            <div style={{ height: '0.75em' }} />
+
+            <p className={`${styles.infoText} m-0 ${colorClasses?.baseItem || ''}`}>{displayBaseItem}</p>
+            <p className={`${styles.infoText} m-0 ${colorClasses?.type || ''}`}><TranslatableText identifier={`items.type.${getItemType(item)}`}></TranslatableText></p>
+
+            {item['original_item'] ? <span className={`${styles.infoText}`}>{`Skin for ${item['original_item']} `}</span> : ""}
+
+            <Enchants item={item} interstitialElement={relocatedInfoElement} comparisonResultEnchants={colorClasses?.enchants || null} styles={styles} />
+
             {item.extras?.notes ? <p className={`${styles.infoText} m-0`}>{item.extras.notes}</p> : ""}
         </div>
     )

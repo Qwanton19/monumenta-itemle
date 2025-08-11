@@ -635,3 +635,18 @@
         background-position: -200% center;
     }
 }
+
+.textGreen {
+  color: #28a745 !important;
+  font-weight: bold !important;
+}
+
+.textYellow {
+  color: #ffc107 !important;
+  font-weight: bold !important;
+}
+
+.textRed {
+  color: #dc3545 !important;
+  font-weight: bold !important;
+}

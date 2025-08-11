@@ -1,14 +1,19 @@
-import styles from '../styles/HomeButton.module.css'
-import Link from 'next/link'
-import Home from '@mui/icons-material/Home'
-
+import React from 'react';
+import styles from '../styles/HomeButton.module.css';
 
 export default function HomeButton() {
-    return (
-        <div className={styles.homebutton} title="Go to homepage">
-            <Link href="/" className={styles.button}>
-                <Home style={{ fontSize: 50 }} />
-            </Link>
-        </div>
-    )
-} 
+  return (
+    <a
+      href="https://odetomisery.vercel.app/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className={styles.homebutton}
+      title="Go to Ode to Misery"
+    >
+      <img
+        src="/favicon.ico"
+        alt="Ode to Misery Home"
+      />
+    </a>
+  );
+}
