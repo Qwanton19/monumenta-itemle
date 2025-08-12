@@ -498,12 +498,19 @@ export async function getServerSideProps(context) {
     });
 
     const epochDate = new Date("2025-08-11T00:00:00.000-04:00");
-    const estDate = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
+    const estFormatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    });
+    const dateSeed = estFormatter.format(new Date());
+    const estDate = new Date(`${dateSeed}T00:00:00.000-04:00`);
+
     const msSinceEpoch = estDate.getTime() - epochDate.getTime();
     const daysSinceEpoch = Math.floor(msSinceEpoch / (1000 * 60 * 60 * 24));
     const itemleDayNumber = daysSinceEpoch + 1;
 
-    const dateSeed = estDate.toISOString().slice(0, 10);
     const rng = seedrandom(dateSeed);
     const randomIndex = Math.floor(rng() * possibleItems.length);
     const dailyItemKey = possibleItems[randomIndex];
