@@ -34,20 +34,14 @@ function groupMasterwork(items, itemData) {
 }
 
 function compareItems(guessedItem, secretItem) {
-    const result = {
-        baseItem: 'red', type: 'red', location: 'red',
-        region: 'red', tier: 'red', enchants: {},
-    };
+    const result = { baseItem: 'red', type: 'red', location: 'red', region: 'red', tier: 'red', enchants: {} };
     if (!guessedItem || !secretItem) return result;
-
     const guessedMaterial = (guessedItem.base_item || '').split(' ')[0];
     const secretMaterial = (secretItem.base_item || '').split(' ')[0];
     if (guessedMaterial === secretMaterial) result.baseItem = 'green';
-
     if (guessedItem.type === secretItem.type) result.type = 'green';
     if (guessedItem.location === secretItem.location) result.location = 'green';
     if (guessedItem.region === secretItem.region) result.region = 'green';
-
     const guessedTier = guessedItem.tier || "";
     const secretTier = secretItem.tier || "";
     if (guessedTier === secretTier) {
@@ -57,7 +51,6 @@ function compareItems(guessedItem, secretItem) {
     } else {
         result.tier = 'red';
     }
-
     const getOrderedPrimaryEnchants = (item) => {
         const enchants = [];
         const allItemStats = { ...(item.stats || {}), ...(item.attributes || {}) };
@@ -71,11 +64,9 @@ function compareItems(guessedItem, secretItem) {
         }
         return enchants;
     };
-
     const guessedPrimaryEnchantNames = getOrderedPrimaryEnchants(guessedItem).slice(0, 2);
     const secretAllEnchants = { ...(secretItem.stats || {}), ...(secretItem.attributes || {}) };
     const guessedAllEnchants = { ...(guessedItem.stats || {}), ...(guessedItem.attributes || {}) };
-
     for (const enchantName of guessedPrimaryEnchantNames) {
         if (secretAllEnchants.hasOwnProperty(enchantName)) {
             result.enchants[enchantName] = secretAllEnchants[enchantName] === guessedAllEnchants[enchantName] ? 'green' : 'yellow';
@@ -86,7 +77,6 @@ function compareItems(guessedItem, secretItem) {
     return result;
 }
 
-
 function RenderItemTile({ itemKey, itemData, colorClasses = null }) {
     if (!itemKey || !itemData[itemKey]) return null;
     const item = itemData[itemKey];
@@ -96,7 +86,7 @@ function RenderItemTile({ itemKey, itemData, colorClasses = null }) {
     return <ItemTile name={itemKey} item={item} colorClasses={colorClasses} />;
 }
 
-const equipmentCategories = [
+const itemTypeOptions = [
     { value: 'mainhand', label: 'Mainhand' }, { value: 'offhand', label: 'Offhand' },
     { value: 'helmet', label: 'Helmet' }, { value: 'chestplate', label: 'Chestplate' },
     { value: 'leggings', 'label': 'Leggings' }, { value: 'boots', label: 'Boots' },
@@ -107,15 +97,70 @@ const categoryTypeMap = {
     leggings: ["leggings"], boots: ["boots"],
 };
 
+const filterCategoryOptions = [
+    { value: 'region', label: 'Region' },
+    { value: 'tier', label: 'Rarity' },
+    { value: 'location', label: 'Location' },
+    { value: 'enchant', label: 'Enchant' },
+    { value: 'material', label: 'Item Material' },
+];
 
 export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
     const [isLoading, setIsLoading] = React.useState(true);
-    const [selectedCategory, setSelectedCategory] = React.useState(null);
-    const [selectedItemKey, setSelectedItemKey] = React.useState(null);
-    const [currentItemSelection, setCurrentItemSelection] = React.useState(null);
     const [guessedItems, setGuessedItems] = React.useState([]);
     const [isWin, setIsWin] = React.useState(false);
     const [shareText, setShareText] = React.useState("Share");
+
+    const [itemType, setItemType] = React.useState(null);
+    const [filters, setFilters] = React.useState([]);
+    const [selectedItem, setSelectedItem] = React.useState(null);
+
+    const allFilterValues = React.useMemo(() => {
+        const statFormatMap = {};
+        for (const category in categories) {
+            for (const statDef of categories[category]) {
+                statFormatMap[statDef.name] = statDef.format;
+            }
+        }
+        const allWearableTypes = Object.values(categoryTypeMap).flat();
+        const possibleItemKeys = Object.keys(itemData).filter(key => {
+            const item = itemData[key];
+            return item?.type && allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim());
+        });
+
+        const regions = new Set();
+        const tiers = new Set();
+        const locations = new Set();
+        const enchants = new Set();
+        const materials = new Set();
+
+        for (const key of possibleItemKeys) {
+            const item = itemData[key];
+            if (item.region) regions.add(item.region);
+            if (item.tier) tiers.add(item.tier);
+            if (item.location) locations.add(item.location);
+            if (item.base_item) materials.add(item.base_item.split(' ')[0]);
+
+            if (item.stats) {
+                for (const statName in item.stats) {
+                    const format = statFormatMap[statName];
+                    if (format !== Formats.ATTRIBUTE && format !== Formats.BASE_STAT) {
+                        enchants.add(statName);
+                    }
+                }
+            }
+        }
+
+        const formatEnchantName = (name) => name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+        return {
+            region: [...regions].sort().map(r => ({ value: r, label: r })),
+            tier: [...tiers].sort().map(t => ({ value: t, label: t })),
+            location: [...locations].sort().map(l => ({ value: l, label: l })),
+            enchant: [...enchants].sort().map(e => ({ value: e, label: formatEnchantName(e) })),
+            material: [...materials].sort().map(m => ({ value: m, label: m })),
+        };
+    }, [itemData]);
 
     React.useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -123,15 +168,18 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
             if (savedStateJSON) {
                 try {
                     const savedState = JSON.parse(savedStateJSON);
-                    if (savedState.day === itemleDayNumber) {
+                    if (savedState && savedState.day === itemleDayNumber) {
                         setGuessedItems(savedState.guesses);
                         setIsWin(savedState.win);
                     } else {
                         localStorage.removeItem('itemleGameState');
+                        setGuessedItems([]);
+                        setIsWin(false);
                     }
                 } catch (e) {
-                    console.error("Failed to parse saved game state:", e);
                     localStorage.removeItem('itemleGameState');
+                    setGuessedItems([]);
+                    setIsWin(false);
                 }
             }
         }
@@ -140,58 +188,65 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
 
     React.useEffect(() => {
         if (!isLoading && typeof window !== 'undefined') {
-            const gameState = {
-                day: itemleDayNumber,
-                guesses: guessedItems,
-                win: isWin,
-            };
+            const gameState = { day: itemleDayNumber, guesses: guessedItems, win: isWin };
             localStorage.setItem('itemleGameState', JSON.stringify(gameState));
         }
     }, [guessedItems, isWin, itemleDayNumber, isLoading]);
 
+    const filteredItemOptions = React.useMemo(() => {
+        if (!itemType) return [];
+        let items = Object.keys(itemData);
+        const wantedItemTypes = categoryTypeMap[itemType.value];
+        items = items.filter(key => wantedItemTypes.includes(itemData[key].type?.toLowerCase().replace(/<.*>/, "").trim()));
+        filters.forEach(filter => {
+            if (filter.category && filter.value) {
+                if (filter.category === 'enchant') {
+                    items = items.filter(key => itemData[key].stats?.[filter.value] !== undefined);
+                } else if (filter.category === 'material') {
+                    items = items.filter(key => itemData[key].base_item?.split(' ')[0] === filter.value);
+                } else {
+                    items = items.filter(key => itemData[key][filter.category] === filter.value);
+                }
+            }
+        });
+        let grouped = groupMasterwork(items, itemData);
+        return grouped.map(item => (typeof item === 'string') ? { value: item, label: itemData[item].name } : item)
+            .sort((a, b) => a.label.localeCompare(b.label));
+    }, [itemType, filters, itemData]);
+
     const MAX_GUESSES = 6;
     const isGameFinished = isWin || guessedItems.length >= MAX_GUESSES;
 
-    const itemOptions = React.useMemo(() => {
-        if (!selectedCategory) return [];
-        const validTypes = categoryTypeMap[selectedCategory.value];
-        let filteredItems = Object.keys(itemData).filter(key => {
-            const item = itemData[key];
-            return item?.type && validTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim());
-        });
-        let groupedItems = groupMasterwork(filteredItems, itemData);
-        const options = groupedItems.map(item => (typeof item === 'string') ? { value: item, label: itemData[item].name } : item);
-        return options.sort((a, b) => a.label.localeCompare(b.label));
-    }, [selectedCategory, itemData]);
-
     const handleGuess = () => {
-        if (!selectedItemKey || isGameFinished) return;
+        if (!selectedItem || isGameFinished) return;
+        const selectedItemKey = selectedItem.value;
         if (selectedItemKey === dailyItemKey) setIsWin(true);
         setGuessedItems(prev => [...prev, selectedItemKey]);
-        setSelectedItemKey(null);
-        setCurrentItemSelection(null);
-        setSelectedCategory(null);
+        setSelectedItem(null);
+        setItemType(null);
+        setFilters([]);
     };
 
-    const handleCategoryChange = (selectedOption) => {
-        setSelectedCategory(selectedOption);
-        setSelectedItemKey(null);
-        setCurrentItemSelection(null);
-    };
-
-    const handleItemSelectChange = (selectedOption) => {
-        setSelectedItemKey(selectedOption ? selectedOption.value : null);
-        setCurrentItemSelection(selectedOption);
+    const handleAddFilter = () => setFilters(prev => [...prev, { id: Date.now(), category: null, value: null }]);
+    const handleRemoveFilter = (id) => setFilters(prev => prev.filter(f => f.id !== id));
+    const handleFilterChange = (id, field, value) => {
+        setFilters(prev => prev.map(f => {
+            if (f.id === id) {
+                const newFilter = { ...f, [field]: value };
+                if (field === 'category') newFilter.value = null;
+                return newFilter;
+            }
+            return f;
+        }));
     };
 
     const generateShareText = () => {
         const score = isWin ? guessedItems.length : 'X';
-        let text = `Monumenta Itemle ${itemleDayNumber} ${score}/6\n\n`;
+        const header = `Monumenta Itemle ${itemleDayNumber} ${score}/6\n`;
+        const numberEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'];
+        const attemptIcons = guessedItems.map((_, i) => numberEmojis[i]).join('');
         const emojiMap = { green: '🟩', yellow: '🟨', red: '🟥', gray: '⬜' };
-        const emojiGrid = {
-            baseItem: [], type: [], enchant1: [],
-            enchant2: [], location: [], region: [], tier: []
-        };
+        const emojiGrid = { baseItem: [], type: [], enchant1: [], enchant2: [], location: [], region: [], tier: [] };
         const getOrderedPrimaryEnchants = (item) => {
             const enchants = [];
             const allItemStats = { ...(item.stats || {}), ...(item.attributes || {}) };
@@ -221,31 +276,33 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
             emojiGrid.enchant1.push(enchant1Name ? emojiMap[result.enchants[enchant1Name] || 'red'] : emojiMap.gray);
             emojiGrid.enchant2.push(enchant2Name ? emojiMap[result.enchants[enchant2Name] || 'red'] : emojiMap.gray);
         });
-
-        text += `Item Material: ${emojiGrid.baseItem.join('')}\n`;
-        text += `Item Type:      ${emojiGrid.type.join('')}\n`;
-        text += `Enchant 1:      ${emojiGrid.enchant1.join('')}\n`;
-        text += `Enchant 2:     ${emojiGrid.enchant2.join('')}\n`;
-        text += `Location:       ${emojiGrid.location.join('')}\n`;
-        text += `Region:           ${emojiGrid.region.join('')}\n`;
-        text += `Tier:                 ${emojiGrid.tier.join('')}\n`;
-
-        return text;
-    }
+        const rows = [
+            { label: 'Attempt:', emojis: attemptIcons },
+            { label: 'Item Material:', emojis: emojiGrid.baseItem.join('') },
+            { label: 'Item Type:', emojis: emojiGrid.type.join('') },
+            { label: 'Enchant 1:', emojis: emojiGrid.enchant1.join('') },
+            { label: 'Enchant 2:', emojis: emojiGrid.enchant2.join('') },
+            { label: 'Location:', emojis: emojiGrid.location.join('') },
+            { label: 'Region:', emojis: emojiGrid.region.join('') },
+            { label: 'Tier:', emojis: emojiGrid.tier.join('') }
+        ];
+        const maxLength = Math.max(...rows.map(row => row.label.length));
+        const gridText = rows.map(row => {
+            const paddedLabel = row.label.padEnd(maxLength, ' ');
+            return `\`${paddedLabel}\` ${row.emojis}`;
+        }).join('\n');
+        return header + '\n' + gridText;
+    };
 
     const handleShareClick = () => {
         const shareString = generateShareText();
         navigator.clipboard.writeText(shareString).then(() => {
             setShareText("Copied!");
             setTimeout(() => setShareText("Share"), 2000);
-        }).catch(err => {
-            console.error("Failed to copy text: ", err);
-        });
+        }).catch(err => { console.error("Failed to copy text: ", err); });
     };
 
-    if (isLoading) {
-        return null;
-    }
+    if (isLoading) return null;
 
     return (
         <div className="container-fluid px-4">
@@ -261,22 +318,50 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                     {!isGameFinished ? (
                         <>
                             <h2 className="h4 text-center">Select an Item to Guess ({guessedItems.length} / {MAX_GUESSES})</h2>
-                             <div className="d-flex flex-column" style={{ width: '100%', maxWidth: '600px', gap: '1rem' }}>
+                                <div className="d-flex flex-column" style={{ width: '100%', maxWidth: '600px', gap: '1rem' }}>
                                 <Select
-                                    instanceId="itemle-category-selector" options={equipmentCategories} onChange={handleCategoryChange} value={selectedCategory}
-                                    placeholder="1. Select an equipment slot..." isDisabled={isGameFinished}
+                                    instanceId="itemle-item-type" options={itemTypeOptions}
+                                    onChange={setItemType} value={itemType}
+                                    placeholder="Select an Item Type..."
                                     theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
+
+                                {filters.map((filter) => (
+                                    <div key={filter.id} className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <Select
+                                                instanceId={`filter-cat-${filter.id}`} options={filterCategoryOptions}
+                                                value={filterCategoryOptions.find(o => o.value === filter.category)}
+                                                onChange={(opt) => handleFilterChange(filter.id, 'category', opt.value)}
+                                                placeholder="Filter by..."
+                                                theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
+                                        </div>
+                                        <div style={{ flex: 2 }}>
+                                            <Select
+                                                instanceId={`filter-val-${filter.id}`} options={allFilterValues[filter.category] || []}
+                                                value={allFilterValues[filter.category]?.find(o => o.value === filter.value) || null}
+                                                onChange={(opt) => handleFilterChange(filter.id, 'value', opt.value)}
+                                                isDisabled={!filter.category} placeholder="Select value..."
+                                                theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
+                                        </div>
+                                        <button onClick={() => handleRemoveFilter(filter.id)} className="btn btn-sm btn-danger">&times;</button>
+                                    </div>
+                                ))}
+
                                 <Select
-                                    key={selectedCategory ? selectedCategory.value : 'item-selector'}
-                                    instanceId="itemle-item-selector" options={itemOptions} onChange={handleItemSelectChange}
-                                    value={currentItemSelection} placeholder="2. Select an item..."
-                                    isDisabled={!selectedCategory || isGameFinished} isOptionDisabled={(option) => guessedItems.includes(option.value)}
-                                    theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} isClearable />
+                                    instanceId="itemle-final-select" options={filteredItemOptions} onChange={setSelectedItem}
+                                    value={selectedItem} placeholder={`Select your guess (${filteredItemOptions.length} matching)...`}
+                                    isDisabled={!itemType} isOptionDisabled={(option) => guessedItems.includes(option.value)}
+                                    theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
                             </div>
-                             {selectedItemKey && (
-                                <div className="text-center d-flex flex-column align-items-center" style={{ animation: 'fadeIn 0.5s' }}>
-                                    <RenderItemTile itemKey={selectedItemKey} itemData={itemData} />
-                                    <button onClick={handleGuess} className="btn btn-primary btn-lg mt-3">Guess Item</button>
+
+                            <div className="d-flex justify-content-center align-items-center" style={{ gap: '1rem' }}>
+                                <button onClick={handleAddFilter} className="btn btn-secondary">+</button>
+                                <button onClick={handleGuess} className="btn btn-primary btn-lg" disabled={!selectedItem}>Guess Item</button>
+                            </div>
+
+                             {selectedItem && (
+                                <div className="text-center" style={{ animation: 'fadeIn 0.5s' }}>
+                                    <RenderItemTile itemKey={selectedItem.value} itemData={itemData} />
                                 </div>
                             )}
                         </>
@@ -284,30 +369,21 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                         <div className="text-center d-flex flex-column align-items-center" style={{ animation: 'fadeIn 0.5s' }}>
                             {isWin ? <h2 className="h4 text-success fw-bold mt-4">You got it! This was the correct item!</h2>
                                  : <h2 className="h4 text-danger fw-bold mt-4">Game Over! This was the correct item!</h2>}
-
-                             <button onClick={handleShareClick} className="btn btn-lg my-3 share-button">
-                                {shareText}
-                             </button>
-
+                             <button onClick={handleShareClick} className="btn btn-lg my-3 share-button">{shareText}</button>
                             <RenderItemTile itemKey={dailyItemKey} itemData={itemData} />
                         </div>
                     )}
                 </div>
 
                 {guessedItems.length > 0 && (
-                     <div
-                        className="guesses-container"
-                        style={{ width: '100%', marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #dee2e6' }}>
+                     <div className="guesses-container" style={{ width: '100%', marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #dee2e6' }}>
                         {guessedItems.map((key) => {
                             const result = compareItems(itemData[key], itemData[dailyItemKey]);
                             const capitalize = (s) => s && s.charAt(0).toUpperCase() + s.slice(1);
                             const colorClasses = {
-                                baseItem: `text${capitalize(result.baseItem)}`,
-                                type: `text${capitalize(result.type)}`,
-                                location: `text${capitalize(result.location)}`,
-                                region: `text${capitalize(result.region)}`,
-                                tier: `text${capitalize(result.tier)}`,
-                                enchants: result.enchants,
+                                baseItem: `text${capitalize(result.baseItem)}`, type: `text${capitalize(result.type)}`,
+                                location: `text${capitalize(result.location)}`, region: `text${capitalize(result.region)}`,
+                                tier: `text${capitalize(result.tier)}`, enchants: result.enchants,
                             };
                             return (
                                 <div key={key} className="guess-item-wrapper" style={{ animation: 'slideInUp 0.5s forwards' }}>

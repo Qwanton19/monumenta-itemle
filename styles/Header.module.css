@@ -6,3 +6,24 @@
 .link:hover {
     color: lightgray;
 }
+
+.infoButton {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-left: 1rem;
+    padding: 0;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+}
+
+.infoButton:hover {
+    opacity: 0.6;
+}
+
+.infoButton svg {
+    width: 100%;
+    height: 100%;
+}

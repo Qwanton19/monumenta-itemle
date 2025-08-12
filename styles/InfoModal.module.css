@@ -1,0 +1,52 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+    animation: fadeIn 0.3s ease;
+}
+
+.modalContent {
+    background: #110110;
+    border: 3px solid #2c0860;
+    padding: 2rem;
+    position: relative;
+    max-width: 600px;
+    width: 90%;
+    color: #aaa;
+    text-shadow: 1px 1px 0 #2a2a2a;
+    animation: scaleIn 0.3s ease;
+}
+
+.closeButton {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: white;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+}
+
+.closeButton:hover {
+    opacity: 0.7;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
