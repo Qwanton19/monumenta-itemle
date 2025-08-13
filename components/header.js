@@ -51,7 +51,7 @@ export default function Header() {
 
             <InfoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
                 <h2 style={{ color: '#fff', borderBottom: '1px solid #545454', paddingBottom: '0.5rem' }}>How to Play</h2>
-                <p>Guess the daily Monumenta item in 6 tries or less! Use the filters to narrow down your search and make an informed guess.</p>
+                <p>Figure out daily Monumenta item in 6 tries or less! Guess items to learn traits about it.</p>
 
                 <h4 style={{ color: '#fff', marginTop: '1.5rem' }}>Feedback Colors</h4>
                 <ul style={{ paddingLeft: '1.5rem', listStyle: 'none' }}>
@@ -62,9 +62,17 @@ export default function Header() {
                 </ul>
 
                 <h4 style={{ color: '#fff', marginTop: '1.5rem' }}>Important Notes</h4>
-                <p style={{ fontStyle: 'italic' }}>
-                    Only the top two enchants on an item are used for hints. Attributes (like +Health) and any enchants beyond the first two will appear at the bottom of the item and do not give feedback, to keep the game challenging.
-                </p>
+                <div style={{ fontStyle: 'italic' }}>
+                    <p className="mb-2">
+                        Only the top two enchants on an item are used for hints. Attributes (like +Health) and any enchants beyond the first two do not give feedback, to keep the game challenging.
+                    </p>
+                    <p className="mb-2">
+                        For Region 3 items, all items are base Masterwork levels.
+                    </p>
+                    <p className="mb-2">
+                        Resets daily at 12:00 AM EST.
+                    </p>
+                </div>
             </InfoModal>
         </header>
     );

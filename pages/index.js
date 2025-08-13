@@ -115,6 +115,35 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
     const [filters, setFilters] = React.useState([]);
     const [selectedItem, setSelectedItem] = React.useState(null);
 
+    const possibleItemKeys = React.useMemo(() => {
+        const allWearableTypes = Object.values(categoryTypeMap).flat();
+        let initialKeys = Object.keys(itemData).filter(key => {
+            const item = itemData[key];
+            return item?.type &&
+                   allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim()) &&
+                   item.location !== "Arena of Terth";
+        });
+
+        const masterworkGroups = {};
+        const nonMasterworkKeys = [];
+
+        initialKeys.forEach(key => {
+            const item = itemData[key];
+            if (item.masterwork !== undefined) {
+                if (!masterworkGroups[item.name]) masterworkGroups[item.name] = [];
+                masterworkGroups[item.name].push({ key, ...item });
+            } else {
+                nonMasterworkKeys.push(key);
+            }
+        });
+
+        const lowestMasterworkKeys = Object.values(masterworkGroups).map(group => {
+            return group.reduce((lowest, current) => (current.masterwork < lowest.masterwork ? current : lowest), group[0]).key;
+        });
+
+        return [...nonMasterworkKeys, ...lowestMasterworkKeys];
+    }, [itemData]);
+
     const allFilterValues = React.useMemo(() => {
         const statFormatMap = {};
         for (const category in categories) {
@@ -122,11 +151,6 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                 statFormatMap[statDef.name] = statDef.format;
             }
         }
-        const allWearableTypes = Object.values(categoryTypeMap).flat();
-        const possibleItemKeys = Object.keys(itemData).filter(key => {
-            const item = itemData[key];
-            return item?.type && allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim());
-        });
 
         const regions = new Set();
         const tiers = new Set();
@@ -160,7 +184,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
             enchant: [...enchants].sort().map(e => ({ value: e, label: formatEnchantName(e) })),
             material: [...materials].sort().map(m => ({ value: m, label: m })),
         };
-    }, [itemData]);
+    }, [itemData, possibleItemKeys]);
 
     React.useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -195,7 +219,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
 
     const filteredItemOptions = React.useMemo(() => {
         if (!itemType) return [];
-        let items = Object.keys(itemData);
+        let items = [...possibleItemKeys];
         const wantedItemTypes = categoryTypeMap[itemType.value];
         items = items.filter(key => wantedItemTypes.includes(itemData[key].type?.toLowerCase().replace(/<.*>/, "").trim()));
         filters.forEach(filter => {
@@ -209,10 +233,13 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                 }
             }
         });
-        let grouped = groupMasterwork(items, itemData);
-        return grouped.map(item => (typeof item === 'string') ? { value: item, label: itemData[item].name } : item)
-            .sort((a, b) => a.label.localeCompare(b.label));
-    }, [itemType, filters, itemData]);
+
+        return items.map(key => ({
+            value: key,
+            label: itemData[key].name
+        })).sort((a, b) => a.label.localeCompare(b.label));
+
+    }, [itemType, filters, itemData, possibleItemKeys]);
 
     const MAX_GUESSES = 6;
     const isGameFinished = isWin || guessedItems.length >= MAX_GUESSES;
@@ -223,8 +250,6 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
         if (selectedItemKey === dailyItemKey) setIsWin(true);
         setGuessedItems(prev => [...prev, selectedItemKey]);
         setSelectedItem(null);
-        setItemType(null);
-        setFilters([]);
     };
 
     const handleAddFilter = () => setFilters(prev => [...prev, { id: Date.now(), category: null, value: null }]);
@@ -318,7 +343,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                     {!isGameFinished ? (
                         <>
                             <h2 className="h4 text-center">Select an Item to Guess ({guessedItems.length} / {MAX_GUESSES})</h2>
-                                <div className="d-flex flex-column" style={{ width: '100%', maxWidth: '600px', gap: '1rem' }}>
+                            <div className="d-flex flex-column" style={{ width: '100%', maxWidth: '600px', gap: '1rem' }}>
                                 <Select
                                     instanceId="itemle-item-type" options={itemTypeOptions}
                                     onChange={setItemType} value={itemType}
@@ -385,65 +410,21 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                                 location: `text${capitalize(result.location)}`, region: `text${capitalize(result.region)}`,
                                 tier: `text${capitalize(result.tier)}`, enchants: result.enchants,
                             };
-                            return (
-                                <div key={key} className="guess-item-wrapper" style={{ animation: 'slideInUp 0.5s forwards' }}>
-                                    <RenderItemTile itemKey={key} itemData={itemData} colorClasses={colorClasses} />
-                                </div>
-                            )
+                            return (<div key={key} className="guess-item-wrapper" style={{ animation: 'slideInUp 0.5s forwards' }}><RenderItemTile itemKey={key} itemData={itemData} colorClasses={colorClasses} /></div>)
                         })}
                     </div>
                 )}
             </main>
             <style jsx global>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: scale(0.95); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-
-                @keyframes slideInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(20px) scale(0.9);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0) scale(0.9);
-                    }
-                }
-
-                .guesses-container {
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                    gap: 1rem;
-                }
-
+                @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+                @keyframes slideInUp { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(0.9); } }
+                .guesses-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
                 @media (min-width: 1600px) {
-                    .guesses-container {
-                        display: flex;
-                        justify-content: center;
-                        flex-wrap: nowrap;
-                        gap: 0;
-                    }
-                    .guess-item-wrapper {
-                        transform-origin: top center;
-                        margin-right: -35px;
-                    }
+                    .guesses-container { display: flex; justify-content: center; flex-wrap: nowrap; gap: 0; }
+                    .guess-item-wrapper { transform-origin: top center; margin-right: -35px; }
                 }
-
-                .share-button {
-                    background-color: black;
-                    color: white;
-                    border: 2px solid white;
-                    border-radius: 0;
-                    padding: 0.5rem 1.5rem;
-                }
-
-                .share-button:hover {
-                    background-color: #333;
-                    color: white;
-                    border-color: white;
-                }
+                .share-button { background-color: black; color: white; border: 2px solid white; border-radius: 0; padding: 0.5rem 1.5rem; }
+                .share-button:hover { background-color: #333; color: white; border-color: white; }
             `}</style>
         </div>
     )
@@ -492,10 +473,33 @@ export async function getServerSideProps(context) {
     }
 
     const allWearableTypes = Object.values(categoryTypeMap).flat();
-    let possibleItems = Object.keys(itemData).filter(key => {
+    let initialPossibleItems = Object.keys(itemData).filter(key => {
         const item = itemData[key];
-        return item?.type && allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim());
+        return item?.type &&
+               allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim()) &&
+               item.location !== "Arena of Terth";
     });
+
+    const masterworkGroups = {};
+    const nonMasterworkKeys = [];
+
+    initialPossibleItems.forEach(key => {
+        const item = itemData[key];
+        if (item.masterwork !== undefined) {
+            if (!masterworkGroups[item.name]) {
+                masterworkGroups[item.name] = [];
+            }
+            masterworkGroups[item.name].push({ key, ...item });
+        } else {
+            nonMasterworkKeys.push(key);
+        }
+    });
+
+    const lowestMasterworkKeys = Object.values(masterworkGroups).map(group => {
+        return group.reduce((lowest, current) => (current.masterwork < lowest.masterwork ? current : lowest), group[0]).key;
+    });
+
+    const possibleItems = [...nonMasterworkKeys, ...lowestMasterworkKeys];
 
     const epochDate = new Date("2025-08-11T00:00:00.000-04:00");
     const estFormatter = new Intl.DateTimeFormat('en-CA', {
