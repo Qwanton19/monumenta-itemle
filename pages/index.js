@@ -14,6 +14,28 @@ import AuthProvider from '../utils/authProvider';
 import extras from '../public/items/extras.json';
 import { categories, Formats } from '../utils/items/statFormatter';
 
+function getMaterialCategory(base_item) {
+    if (!base_item) return 'Other';
+    const material = base_item.toLowerCase();
+
+    const projectileWeapons = ['bow', 'crossbow', 'trident', 'snowball'];
+    const standardMaterials = ['leather', 'chainmail', 'iron', 'golden', 'stone', 'diamond', 'netherite'];
+
+    if (projectileWeapons.includes(material.split(' ')[0])) {
+        return 'Projectile Weapon';
+    }
+    if (material === 'shield') {
+        return 'Shield';
+    }
+    if (material === 'splash potion') {
+        return 'Alchemist Bag';
+    }
+    if (standardMaterials.includes(material.split(' ')[0])) {
+        const mat = material.split(' ')[0];
+        return mat.charAt(0).toUpperCase() + mat.slice(1);
+    }
+    return 'Other';
+}
 
 function groupMasterwork(items, itemData) {
     let masterworkItems = {};
@@ -36,9 +58,11 @@ function groupMasterwork(items, itemData) {
 function compareItems(guessedItem, secretItem) {
     const result = { baseItem: 'red', type: 'red', location: 'red', region: 'red', tier: 'red', enchants: {} };
     if (!guessedItem || !secretItem) return result;
-    const guessedMaterial = (guessedItem.base_item || '').split(' ')[0];
-    const secretMaterial = (secretItem.base_item || '').split(' ')[0];
-    if (guessedMaterial === secretMaterial) result.baseItem = 'green';
+
+    const guessedMaterialCategory = getMaterialCategory(guessedItem.base_item);
+    const secretMaterialCategory = getMaterialCategory(secretItem.base_item);
+    if (guessedMaterialCategory === secretMaterialCategory) result.baseItem = 'green';
+
     if (guessedItem.type === secretItem.type) result.type = 'green';
     if (guessedItem.location === secretItem.location) result.location = 'green';
     if (guessedItem.region === secretItem.region) result.region = 'green';
@@ -123,10 +147,8 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                    allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim()) &&
                    item.location !== "Arena of Terth";
         });
-
         const masterworkGroups = {};
         const nonMasterworkKeys = [];
-
         initialKeys.forEach(key => {
             const item = itemData[key];
             if (item.masterwork !== undefined) {
@@ -136,11 +158,9 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                 nonMasterworkKeys.push(key);
             }
         });
-
         const lowestMasterworkKeys = Object.values(masterworkGroups).map(group => {
             return group.reduce((lowest, current) => (current.masterwork < lowest.masterwork ? current : lowest), group[0]).key;
         });
-
         return [...nonMasterworkKeys, ...lowestMasterworkKeys];
     }, [itemData]);
 
@@ -163,7 +183,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
             if (item.region) regions.add(item.region);
             if (item.tier) tiers.add(item.tier);
             if (item.location) locations.add(item.location);
-            if (item.base_item) materials.add(item.base_item.split(' ')[0]);
+            materials.add(getMaterialCategory(item.base_item));
 
             if (item.stats) {
                 for (const statName in item.stats) {
@@ -227,7 +247,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                 if (filter.category === 'enchant') {
                     items = items.filter(key => itemData[key].stats?.[filter.value] !== undefined);
                 } else if (filter.category === 'material') {
-                    items = items.filter(key => itemData[key].base_item?.split(' ')[0] === filter.value);
+                    items = items.filter(key => getMaterialCategory(itemData[key].base_item) === filter.value);
                 } else {
                     items = items.filter(key => itemData[key][filter.category] === filter.value);
                 }

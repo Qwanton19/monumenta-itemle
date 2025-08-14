@@ -83,12 +83,24 @@ export default function ItemTile(data) {
 
     const relocatedInfoElement = relocatedElements.length > 0 ? (<div key="relocated-info-wrapper">{relocatedElements}</div>) : null;
 
-    let displayBaseItem = item['base_item'];
-    if (item.type) {
-        const filteredBaseWords = item['base_item'].split(' ').filter(baseWord => !item.type.split(' ').some(typeWord => typeWord.toLowerCase() === baseWord.toLowerCase()));
-        const newDisplayBaseItem = filteredBaseWords.join(' ');
-        if (newDisplayBaseItem.trim() !== "") displayBaseItem = newDisplayBaseItem;
+    let displayBaseItem;
+
+    const standardDisplayMaterials = [
+        'leather', 'chainmail', 'iron', 'golden', 'stone', 'diamond', 'netherite',
+        'bow', 'crossbow', 'trident', 'snowball', 'shield'
+    ];
+
+    const material = (item.base_item || '').split(' ')[0].toLowerCase();
+
+    if (standardDisplayMaterials.includes(material)) {
+        displayBaseItem = material.charAt(0).toUpperCase() + material.slice(1);
+    } else {
+        displayBaseItem = 'Other';
     }
+
+    const isAlchemistBag = (item.base_item || '').toLowerCase() === 'splash potion';
+    const projectileWeapons = ['bow', 'crossbow', 'trident', 'snowball'];
+    const isProjectile = projectileWeapons.includes(material);
 
     return (
         <div className={`${styles.itemTile} ${data.hidden ? styles.hidden : ""}`}>
@@ -107,7 +119,12 @@ export default function ItemTile(data) {
             <div style={{ height: '0.75em' }} />
 
             <p className={`${styles.infoText} m-0 ${colorClasses?.baseItem || ''}`}>{displayBaseItem}</p>
-            <p className={`${styles.infoText} m-0 ${colorClasses?.type || ''}`}><TranslatableText identifier={`items.type.${getItemType(item)}`}></TranslatableText></p>
+
+            <p className={`${styles.infoText} m-0 ${colorClasses?.type || ''}`}>
+                {isAlchemistBag ? 'Alchemist Bag' :
+                 isProjectile ? 'Projectile Weapon' :
+                 <TranslatableText identifier={`items.type.${getItemType(item)}`}></TranslatableText>}
+            </p>
 
             {item['original_item'] ? <span className={`${styles.infoText}`}>{`Skin for ${item['original_item']} `}</span> : ""}
 
