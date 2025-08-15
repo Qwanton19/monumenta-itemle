@@ -17,19 +17,11 @@ import { categories, Formats } from '../utils/items/statFormatter';
 function getMaterialCategory(base_item) {
     if (!base_item) return 'Other';
     const material = base_item.toLowerCase();
-
     const projectileWeapons = ['bow', 'crossbow', 'trident', 'snowball'];
     const standardMaterials = ['leather', 'chainmail', 'iron', 'golden', 'stone', 'diamond', 'netherite'];
-
-    if (projectileWeapons.includes(material.split(' ')[0])) {
-        return 'Projectile Weapon';
-    }
-    if (material === 'shield') {
-        return 'Shield';
-    }
-    if (material === 'splash potion') {
-        return 'Alchemist Bag';
-    }
+    if (projectileWeapons.includes(material.split(' ')[0])) return 'Projectile Weapon';
+    if (material === 'shield') return 'Shield';
+    if (material === 'splash potion') return 'Alchemist Bag';
     if (standardMaterials.includes(material.split(' ')[0])) {
         const mat = material.split(' ')[0];
         return mat.charAt(0).toUpperCase() + mat.slice(1);
@@ -58,11 +50,9 @@ function groupMasterwork(items, itemData) {
 function compareItems(guessedItem, secretItem) {
     const result = { baseItem: 'red', type: 'red', location: 'red', region: 'red', tier: 'red', enchants: {} };
     if (!guessedItem || !secretItem) return result;
-
     const guessedMaterialCategory = getMaterialCategory(guessedItem.base_item);
     const secretMaterialCategory = getMaterialCategory(secretItem.base_item);
     if (guessedMaterialCategory === secretMaterialCategory) result.baseItem = 'green';
-
     if (guessedItem.type === secretItem.type) result.type = 'green';
     if (guessedItem.location === secretItem.location) result.location = 'green';
     if (guessedItem.region === secretItem.region) result.region = 'green';
@@ -135,6 +125,9 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
     const [isWin, setIsWin] = React.useState(false);
     const [shareText, setShareText] = React.useState("Share");
 
+    const [gameMode, setGameMode] = React.useState('daily');
+    const [bonusItemKey, setBonusItemKey] = React.useState(null);
+    
     const [itemType, setItemType] = React.useState(null);
     const [filters, setFilters] = React.useState([]);
     const [selectedItem, setSelectedItem] = React.useState(null);
@@ -167,36 +160,23 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
     const allFilterValues = React.useMemo(() => {
         const statFormatMap = {};
         for (const category in categories) {
-            for (const statDef of categories[category]) {
-                statFormatMap[statDef.name] = statDef.format;
-            }
+            for (const statDef of categories[category]) { statFormatMap[statDef.name] = statDef.format; }
         }
-
-        const regions = new Set();
-        const tiers = new Set();
-        const locations = new Set();
-        const enchants = new Set();
-        const materials = new Set();
-
+        const regions = new Set(), tiers = new Set(), locations = new Set(), enchants = new Set(), materials = new Set();
         for (const key of possibleItemKeys) {
             const item = itemData[key];
             if (item.region) regions.add(item.region);
             if (item.tier) tiers.add(item.tier);
             if (item.location) locations.add(item.location);
             materials.add(getMaterialCategory(item.base_item));
-
             if (item.stats) {
                 for (const statName in item.stats) {
                     const format = statFormatMap[statName];
-                    if (format !== Formats.ATTRIBUTE && format !== Formats.BASE_STAT) {
-                        enchants.add(statName);
-                    }
+                    if (format !== Formats.ATTRIBUTE && format !== Formats.BASE_STAT) { enchants.add(statName); }
                 }
             }
         }
-
         const formatEnchantName = (name) => name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
         return {
             region: [...regions].sort().map(r => ({ value: r, label: r })),
             tier: [...tiers].sort().map(t => ({ value: t, label: t })),
@@ -220,7 +200,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                         setGuessedItems([]);
                         setIsWin(false);
                     }
-                } catch (e) {
+                } catch (e) { 
                     localStorage.removeItem('itemleGameState');
                     setGuessedItems([]);
                     setIsWin(false);
@@ -231,11 +211,23 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
     }, [itemleDayNumber]);
 
     React.useEffect(() => {
-        if (!isLoading && typeof window !== 'undefined') {
+        if (gameMode === 'daily' && !isLoading && typeof window !== 'undefined') {
             const gameState = { day: itemleDayNumber, guesses: guessedItems, win: isWin };
             localStorage.setItem('itemleGameState', JSON.stringify(gameState));
         }
-    }, [guessedItems, isWin, itemleDayNumber, isLoading]);
+    }, [guessedItems, isWin, itemleDayNumber, isLoading, gameMode]);
+
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const nowInEST = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
+            const tomorrowInEST = new Date(nowInEST);
+            tomorrowInEST.setDate(nowInEST.getDate() + 1);
+            tomorrowInEST.setHours(0, 0, 0, 0);
+            const msUntilMidnight = tomorrowInEST.getTime() - nowInEST.getTime();
+            const timerId = setTimeout(() => { window.location.reload(); }, msUntilMidnight);
+            return () => { clearTimeout(timerId); };
+        }
+    }, []);
 
     const filteredItemOptions = React.useMemo(() => {
         if (!itemType) return [];
@@ -244,32 +236,45 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
         items = items.filter(key => wantedItemTypes.includes(itemData[key].type?.toLowerCase().replace(/<.*>/, "").trim()));
         filters.forEach(filter => {
             if (filter.category && filter.value) {
-                if (filter.category === 'enchant') {
-                    items = items.filter(key => itemData[key].stats?.[filter.value] !== undefined);
-                } else if (filter.category === 'material') {
-                    items = items.filter(key => getMaterialCategory(itemData[key].base_item) === filter.value);
-                } else {
-                    items = items.filter(key => itemData[key][filter.category] === filter.value);
-                }
+                if (filter.category === 'enchant') items = items.filter(key => itemData[key].stats?.[filter.value] !== undefined);
+                else if (filter.category === 'material') items = items.filter(key => getMaterialCategory(itemData[key].base_item) === filter.value);
+                else items = items.filter(key => itemData[key][filter.category] === filter.value);
             }
         });
-
-        return items.map(key => ({
-            value: key,
-            label: itemData[key].name
-        })).sort((a, b) => a.label.localeCompare(b.label));
-
+        return items.map(key => ({ value: key, label: itemData[key].name })).sort((a, b) => a.label.localeCompare(b.label));
     }, [itemType, filters, itemData, possibleItemKeys]);
 
     const MAX_GUESSES = 6;
-    const isGameFinished = isWin || guessedItems.length >= MAX_GUESSES;
+    const isDailyGameFinished = gameMode === 'daily' && (isWin || guessedItems.length >= MAX_GUESSES);
+    const isBonusGameFinished = gameMode === 'bonus' && (isWin || guessedItems.length >= MAX_GUESSES);
+    const isGameActive = !isDailyGameFinished && !isBonusGameFinished;
+
+    const currentSecretItemKey = gameMode === 'daily' ? dailyItemKey : bonusItemKey;
 
     const handleGuess = () => {
-        if (!selectedItem || isGameFinished) return;
+        const isCurrentGameOver = (isWin || guessedItems.length >= MAX_GUESSES);
+        if (!selectedItem || isCurrentGameOver) return;
         const selectedItemKey = selectedItem.value;
-        if (selectedItemKey === dailyItemKey) setIsWin(true);
+        if (selectedItemKey === currentSecretItemKey) {
+            setIsWin(true);
+            if (gameMode === 'daily') {
+                new Audio('/win-sound.mp3').play();
+            }
+        }
         setGuessedItems(prev => [...prev, selectedItemKey]);
         setSelectedItem(null);
+    };
+
+    const startBonusGame = () => {
+        const randomIndex = Math.floor(Math.random() * possibleItemKeys.length);
+        const newBonusItem = possibleItemKeys[randomIndex];
+        setBonusItemKey(newBonusItem);
+        setGuessedItems([]);
+        setIsWin(false);
+        setGameMode('bonus');
+        setSelectedItem(null);
+        setItemType(null);
+        setFilters([]);
     };
 
     const handleAddFilter = () => setFilters(prev => [...prev, { id: Date.now(), category: null, value: null }]);
@@ -305,7 +310,6 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
             }
             return enchants;
         };
-
         guessedItems.forEach(key => {
             const guessedItem = itemData[key];
             const secretItem = itemData[dailyItemKey];
@@ -360,62 +364,47 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
 
             <main style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '1rem' }}>
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', minHeight: '350px' }}>
-                    {!isGameFinished ? (
+                    {isGameActive && (
                         <>
-                            <h2 className="h4 text-center">Select an Item to Guess ({guessedItems.length} / {MAX_GUESSES})</h2>
+                            <h2 className="h4 text-center">
+                                {gameMode === 'daily' ? `Select an Item to Guess (${guessedItems.length} / ${MAX_GUESSES})` : `Endless Mode! (${guessedItems.length} / ${MAX_GUESSES})`}
+                            </h2>
                             <div className="d-flex flex-column" style={{ width: '100%', maxWidth: '600px', gap: '1rem' }}>
-                                <Select
-                                    instanceId="itemle-item-type" options={itemTypeOptions}
-                                    onChange={setItemType} value={itemType}
-                                    placeholder="Select an Item Type..."
-                                    theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
-
-                                {filters.map((filter) => (
-                                    <div key={filter.id} className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <Select
-                                                instanceId={`filter-cat-${filter.id}`} options={filterCategoryOptions}
-                                                value={filterCategoryOptions.find(o => o.value === filter.category)}
-                                                onChange={(opt) => handleFilterChange(filter.id, 'category', opt.value)}
-                                                placeholder="Filter by..."
-                                                theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
-                                        </div>
-                                        <div style={{ flex: 2 }}>
-                                            <Select
-                                                instanceId={`filter-val-${filter.id}`} options={allFilterValues[filter.category] || []}
-                                                value={allFilterValues[filter.category]?.find(o => o.value === filter.value) || null}
-                                                onChange={(opt) => handleFilterChange(filter.id, 'value', opt.value)}
-                                                isDisabled={!filter.category} placeholder="Select value..."
-                                                theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
-                                        </div>
-                                        <button onClick={() => handleRemoveFilter(filter.id)} className="btn btn-sm btn-danger">&times;</button>
-                                    </div>
-                                ))}
-
-                                <Select
-                                    instanceId="itemle-final-select" options={filteredItemOptions} onChange={setSelectedItem}
-                                    value={selectedItem} placeholder={`Select your guess (${filteredItemOptions.length} matching)...`}
-                                    isDisabled={!itemType} isOptionDisabled={(option) => guessedItems.includes(option.value)}
-                                    theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
+                                <Select instanceId="itemle-item-type" options={itemTypeOptions} onChange={setItemType} value={itemType} placeholder="Select an Item Type..." theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
+                                {filters.map((filter) => (<div key={filter.id} className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                                    <div style={{ flex: 1 }}><Select instanceId={`filter-cat-${filter.id}`} options={filterCategoryOptions} value={filterCategoryOptions.find(o => o.value === filter.category)} onChange={(opt) => handleFilterChange(filter.id, 'category', opt.value)} placeholder="Filter by..." theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} /></div>
+                                    <div style={{ flex: 2 }}><Select instanceId={`filter-val-${filter.id}`} options={allFilterValues[filter.category] || []} value={allFilterValues[filter.category]?.find(o => o.value === filter.value) || null} onChange={(opt) => handleFilterChange(filter.id, 'value', opt.value)} isDisabled={!filter.category} placeholder="Select value..." theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} /></div>
+                                    <button onClick={() => handleRemoveFilter(filter.id)} className="btn btn-sm btn-danger">&times;</button>
+                                </div>))}
+                                <Select instanceId="itemle-final-select" options={filteredItemOptions} onChange={setSelectedItem} value={selectedItem} placeholder={`Select your guess (${filteredItemOptions.length} matching)...`} isDisabled={!itemType} isOptionDisabled={(option) => guessedItems.includes(option.value)} theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
                             </div>
-
                             <div className="d-flex justify-content-center align-items-center" style={{ gap: '1rem' }}>
                                 <button onClick={handleAddFilter} className="btn btn-secondary">+</button>
                                 <button onClick={handleGuess} className="btn btn-primary btn-lg" disabled={!selectedItem}>Guess Item</button>
                             </div>
-
-                             {selectedItem && (
-                                <div className="text-center" style={{ animation: 'fadeIn 0.5s' }}>
-                                    <RenderItemTile itemKey={selectedItem.value} itemData={itemData} />
-                                </div>
-                            )}
+                             {selectedItem && (<div className="text-center" style={{ animation: 'fadeIn 0.5s' }}><RenderItemTile itemKey={selectedItem.value} itemData={itemData} /></div>)}
                         </>
-                    ) : (
+                    )}
+
+                    {isDailyGameFinished && (
                         <div className="text-center d-flex flex-column align-items-center" style={{ animation: 'fadeIn 0.5s' }}>
                             {isWin ? <h2 className="h4 text-success fw-bold mt-4">You got it! This was the correct item!</h2>
                                  : <h2 className="h4 text-danger fw-bold mt-4">Game Over! This was the correct item!</h2>}
-                             <button onClick={handleShareClick} className="btn btn-lg my-3 share-button">{shareText}</button>
+                             <div className="d-flex" style={{ gap: '1rem' }}>
+                                <button onClick={handleShareClick} className="btn btn-lg my-3 share-button">{shareText}</button>
+                                <button onClick={startBonusGame} className="btn btn-lg my-3 endless-button">Play Endless Mode</button>
+                             </div>
                             <RenderItemTile itemKey={dailyItemKey} itemData={itemData} />
+                        </div>
+                    )}
+
+                    {isBonusGameFinished && (
+                         <div className="text-center d-flex flex-column align-items-center" style={{ animation: 'fadeIn 0.5s' }}>
+                            {isWin ? <h2 className="h4 text-success fw-bold mt-4">You got it!</h2>
+                                 : <h2 className="h4 text-danger fw-bold mt-4">Game Over!</h2>}
+                            <p>The correct item was:</p>
+                             <button onClick={startBonusGame} className="btn btn-lg my-3 endless-button">Play Another</button>
+                            <RenderItemTile itemKey={bonusItemKey} itemData={itemData} />
                         </div>
                     )}
                 </div>
@@ -423,7 +412,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                 {guessedItems.length > 0 && (
                      <div className="guesses-container" style={{ width: '100%', marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid #dee2e6' }}>
                         {guessedItems.map((key) => {
-                            const result = compareItems(itemData[key], itemData[dailyItemKey]);
+                            const result = compareItems(itemData[key], itemData[currentSecretItemKey]);
                             const capitalize = (s) => s && s.charAt(0).toUpperCase() + s.slice(1);
                             const colorClasses = {
                                 baseItem: `text${capitalize(result.baseItem)}`, type: `text${capitalize(result.type)}`,
@@ -443,8 +432,18 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                     .guesses-container { display: flex; justify-content: center; flex-wrap: nowrap; gap: 0; }
                     .guess-item-wrapper { transform-origin: top center; margin-right: -35px; }
                 }
-                .share-button { background-color: black; color: white; border: 2px solid white; border-radius: 0; padding: 0.5rem 1.5rem; }
-                .share-button:hover { background-color: #333; color: white; border-color: white; }
+                .share-button, .endless-button {
+                    background-color: black;
+                    color: white;
+                    border: 2px solid white;
+                    border-radius: 0;
+                    padding: 0.5rem 1.5rem;
+                }
+                .share-button:hover, .endless-button:hover {
+                    background-color: #333;
+                    color: white;
+                    border-color: white;
+                }
             `}</style>
         </div>
     )
@@ -454,7 +453,6 @@ export async function getServerSideProps(context) {
     context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     context.res.setHeader('Pragma', 'no-cache');
     context.res.setHeader('Expires', '0');
-
     let itemData = null;
     if (AuthProvider.isUsingApi()) {
         await Axios.get(AuthProvider.getApiPath(), {headers: {'Authorization': AuthProvider.getAuthorizationData()}})
@@ -502,7 +500,6 @@ export async function getServerSideProps(context) {
 
     const masterworkGroups = {};
     const nonMasterworkKeys = [];
-
     initialPossibleItems.forEach(key => {
         const item = itemData[key];
         if (item.masterwork !== undefined) {
@@ -514,11 +511,9 @@ export async function getServerSideProps(context) {
             nonMasterworkKeys.push(key);
         }
     });
-
     const lowestMasterworkKeys = Object.values(masterworkGroups).map(group => {
         return group.reduce((lowest, current) => (current.masterwork < lowest.masterwork ? current : lowest), group[0]).key;
     });
-
     const possibleItems = [...nonMasterworkKeys, ...lowestMasterworkKeys];
 
     const epochDate = new Date("2025-08-11T00:00:00.000-04:00");
@@ -530,7 +525,6 @@ export async function getServerSideProps(context) {
     });
     const dateSeed = estFormatter.format(new Date());
     const estDate = new Date(`${dateSeed}T00:00:00.000-04:00`);
-
     const msSinceEpoch = estDate.getTime() - epochDate.getTime();
     const daysSinceEpoch = Math.floor(msSinceEpoch / (1000 * 60 * 60 * 24));
     const itemleDayNumber = daysSinceEpoch + 1;
