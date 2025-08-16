@@ -84,16 +84,25 @@ export default function ItemTile(data) {
     const relocatedInfoElement = relocatedElements.length > 0 ? (<div key="relocated-info-wrapper">{relocatedElements}</div>) : null;
 
     let displayBaseItem;
-
     const standardDisplayMaterials = [
         'leather', 'chainmail', 'iron', 'golden', 'stone', 'diamond', 'netherite',
-        'bow', 'crossbow', 'trident', 'snowball', 'shield'
+        'bow', 'crossbow', 'trident', 'snowball', 'shield', 'wooden'
     ];
 
     const material = (item.base_item || '').split(' ')[0].toLowerCase();
 
     if (standardDisplayMaterials.includes(material)) {
-        displayBaseItem = material.charAt(0).toUpperCase() + material.slice(1);
+        let deDupedName = item['base_item'];
+        if (item.type) {
+            const filteredBaseWords = (item['base_item'] || '').split(' ').filter(baseWord =>
+                !item.type.split(' ').some(typeWord => typeWord.toLowerCase() === baseWord.toLowerCase())
+            );
+            const newName = filteredBaseWords.join(' ');
+            if (newName.trim() !== '') {
+                deDupedName = newName;
+            }
+        }
+        displayBaseItem = deDupedName;
     } else {
         displayBaseItem = 'Other';
     }

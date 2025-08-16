@@ -18,7 +18,7 @@ function getMaterialCategory(base_item) {
     if (!base_item) return 'Other';
     const material = base_item.toLowerCase();
     const projectileWeapons = ['bow', 'crossbow', 'trident', 'snowball'];
-    const standardMaterials = ['leather', 'chainmail', 'iron', 'golden', 'stone', 'diamond', 'netherite'];
+    const standardMaterials = ['leather', 'chainmail', 'iron', 'golden', 'stone', 'diamond', 'netherite', 'wooden'];
     if (projectileWeapons.includes(material.split(' ')[0])) return 'Projectile Weapon';
     if (material === 'shield') return 'Shield';
     if (material === 'splash potion') return 'Alchemist Bag';
@@ -52,8 +52,21 @@ function compareItems(guessedItem, secretItem) {
     if (!guessedItem || !secretItem) return result;
     const guessedMaterialCategory = getMaterialCategory(guessedItem.base_item);
     const secretMaterialCategory = getMaterialCategory(secretItem.base_item);
-    if (guessedMaterialCategory === secretMaterialCategory) result.baseItem = 'green';
-    if (guessedItem.type === secretItem.type) result.type = 'green';
+    if (guessedMaterialCategory === secretMaterialCategory) {
+        if (guessedMaterialCategory === 'Projectile Weapon' || guessedMaterialCategory === 'Alchemist Bag') {
+            if (guessedItem.base_item === secretItem.base_item) {
+                result.baseItem = 'green';
+            }
+        } else {
+            result.baseItem = 'green';
+        }
+    }
+    if ((getMaterialCategory(guessedItem.base_item) === 'Projectile Weapon' && getMaterialCategory(secretItem.base_item) === 'Projectile Weapon') ||
+        (getMaterialCategory(guessedItem.base_item) === 'Alchemist Bag' && getMaterialCategory(secretItem.base_item) === 'Alchemist Bag')) {
+        result.type = 'green';
+    } else if (guessedItem.type === secretItem.type) {
+        result.type = 'green';
+    }
     if (guessedItem.location === secretItem.location) result.location = 'green';
     if (guessedItem.region === secretItem.region) result.region = 'green';
     const guessedTier = guessedItem.tier || "";
@@ -119,6 +132,12 @@ const filterCategoryOptions = [
     { value: 'material', label: 'Item Material' },
 ];
 
+const forbiddenLocations = [
+    "Challenger", "Divine Skin", "Eternity Skin", "Greed Skin", "Halloween Skin",
+    "Holiday Skin", "Mythic Reliquary", "Remorseful Skin", "Royal Armory", "Sketched",
+    "Storied Skin", "Threadwarped Skin", "Titanic Skin", "True North"
+];
+
 export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
     const [isLoading, setIsLoading] = React.useState(true);
     const [guessedItems, setGuessedItems] = React.useState([]);
@@ -127,7 +146,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
 
     const [gameMode, setGameMode] = React.useState('daily');
     const [bonusItemKey, setBonusItemKey] = React.useState(null);
-    
+
     const [itemType, setItemType] = React.useState(null);
     const [filters, setFilters] = React.useState([]);
     const [selectedItem, setSelectedItem] = React.useState(null);
@@ -136,9 +155,16 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
         const allWearableTypes = Object.values(categoryTypeMap).flat();
         let initialKeys = Object.keys(itemData).filter(key => {
             const item = itemData[key];
-            return item?.type &&
+            if (!item || !item.name || !item.type) return false;
+
+            const nameLower = item.name.toLowerCase();
+            const isForbiddenInflation = nameLower.includes('inflation') && nameLower !== 'hyperinflation';
+
+            return item.type &&
                    allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim()) &&
-                   item.location !== "Arena of Terth";
+                   item.location !== "Arena of Terth" &&
+                   !isForbiddenInflation &&
+                   !forbiddenLocations.includes(item.location);
         });
         const masterworkGroups = {};
         const nonMasterworkKeys = [];
@@ -200,7 +226,7 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                         setGuessedItems([]);
                         setIsWin(false);
                     }
-                } catch (e) { 
+                } catch (e) {
                     localStorage.removeItem('itemleGameState');
                     setGuessedItems([]);
                     setIsWin(false);
@@ -432,18 +458,8 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                     .guesses-container { display: flex; justify-content: center; flex-wrap: nowrap; gap: 0; }
                     .guess-item-wrapper { transform-origin: top center; margin-right: -35px; }
                 }
-                .share-button, .endless-button {
-                    background-color: black;
-                    color: white;
-                    border: 2px solid white;
-                    border-radius: 0;
-                    padding: 0.5rem 1.5rem;
-                }
-                .share-button:hover, .endless-button:hover {
-                    background-color: #333;
-                    color: white;
-                    border-color: white;
-                }
+                .share-button, .endless-button { background-color: black; color: white; border: 2px solid white; border-radius: 0; padding: 0.5rem 1.5rem; }
+                .share-button:hover, .endless-button:hover { background-color: #333; color: white; border-color: white; }
             `}</style>
         </div>
     )
@@ -493,9 +509,16 @@ export async function getServerSideProps(context) {
     const allWearableTypes = Object.values(categoryTypeMap).flat();
     let initialPossibleItems = Object.keys(itemData).filter(key => {
         const item = itemData[key];
-        return item?.type &&
+        if (!item || !item.name || !item.type) return false;
+
+        const nameLower = item.name.toLowerCase();
+        const isForbiddenInflation = nameLower.includes('inflation') && nameLower !== 'hyperinflation';
+
+        return item.type &&
                allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim()) &&
-               item.location !== "Arena of Terth";
+               item.location !== "Arena of Terth" &&
+               !isForbiddenInflation &&
+               !forbiddenLocations.includes(item.location);
     });
 
     const masterworkGroups = {};
