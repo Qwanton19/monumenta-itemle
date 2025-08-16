@@ -92,17 +92,7 @@ export default function ItemTile(data) {
     const material = (item.base_item || '').split(' ')[0].toLowerCase();
 
     if (standardDisplayMaterials.includes(material)) {
-        let deDupedName = item['base_item'];
-        if (item.type) {
-            const filteredBaseWords = (item['base_item'] || '').split(' ').filter(baseWord =>
-                !item.type.split(' ').some(typeWord => typeWord.toLowerCase() === baseWord.toLowerCase())
-            );
-            const newName = filteredBaseWords.join(' ');
-            if (newName.trim() !== '') {
-                deDupedName = newName;
-            }
-        }
-        displayBaseItem = deDupedName;
+        displayBaseItem = material.charAt(0).toUpperCase() + material.slice(1);
     } else {
         displayBaseItem = 'Other';
     }
