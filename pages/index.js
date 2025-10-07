@@ -262,9 +262,18 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
         items = items.filter(key => wantedItemTypes.includes(itemData[key].type?.toLowerCase().replace(/<.*>/, "").trim()));
         filters.forEach(filter => {
             if (filter.category && filter.value) {
-                if (filter.category === 'enchant') items = items.filter(key => itemData[key].stats?.[filter.value] !== undefined);
-                else if (filter.category === 'material') items = items.filter(key => getMaterialCategory(itemData[key].base_item) === filter.value);
-                else items = items.filter(key => itemData[key][filter.category] === filter.value);
+                const isInclude = filter.type === 'include';
+                switch (filter.category) {
+                    case 'enchant':
+                        items = items.filter(key => (itemData[key].stats?.[filter.value] !== undefined) === isInclude);
+                        break;
+                    case 'material':
+                        items = items.filter(key => (getMaterialCategory(itemData[key].base_item) === filter.value) === isInclude);
+                        break;
+                    default:
+                        items = items.filter(key => (itemData[key][filter.category] === filter.value) === isInclude);
+                        break;
+                }
             }
         });
         return items.map(key => ({ value: key, label: itemData[key].name })).sort((a, b) => a.label.localeCompare(b.label));
@@ -303,7 +312,9 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
         setFilters([]);
     };
 
-    const handleAddFilter = () => setFilters(prev => [...prev, { id: Date.now(), category: null, value: null }]);
+    const handleAddFilter = (type) => {
+        setFilters(prev => [...prev, { id: Date.now(), type, category: null, value: null }]);
+    };
     const handleRemoveFilter = (id) => setFilters(prev => prev.filter(f => f.id !== id));
     const handleFilterChange = (id, field, value) => {
         setFilters(prev => prev.map(f => {
@@ -397,15 +408,16 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                             </h2>
                             <div className="d-flex flex-column" style={{ width: '100%', maxWidth: '600px', gap: '1rem' }}>
                                 <Select instanceId="itemle-item-type" options={itemTypeOptions} onChange={setItemType} value={itemType} placeholder="Select an Item Type..." theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
-                                {filters.map((filter) => (<div key={filter.id} className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
+                                {filters.map((filter) => (<div key={filter.id} className={`d-flex align-items-center filter-row ${filter.type === 'exclude' ? 'exclude-filter' : ''}`} style={{ gap: '0.5rem' }}>
                                     <div style={{ flex: 1 }}><Select instanceId={`filter-cat-${filter.id}`} options={filterCategoryOptions} value={filterCategoryOptions.find(o => o.value === filter.category)} onChange={(opt) => handleFilterChange(filter.id, 'category', opt.value)} placeholder="Filter by..." theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} /></div>
-                                    <div style={{ flex: 2 }}><Select instanceId={`filter-val-${filter.id}`} options={allFilterValues[filter.category] || []} value={allFilterValues[filter.category]?.find(o => o.value === filter.value) || null} onChange={(opt) => handleFilterChange(filter.id, 'value', opt.value)} isDisabled={!filter.category} placeholder="Select value..." theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} /></div>
-                                    <button onClick={() => handleRemoveFilter(filter.id)} className="btn btn-sm btn-danger">&times;</button>
+                                    <div style={{ flex: 2 }}><Select instanceId={`filter-val-${filter.id}`} options={allFilterValues[filter.category] || []} value={allFilterValues[filter.category]?.find(o => o.value === filter.value) || null} onChange={(opt) => handleFilterChange(filter.id, 'value', opt.value)} isDisabled={!filter.category} placeholder={filter.type === 'exclude' ? 'Exclude value...' : 'Include value...'} theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} /></div>
+                                    <button onClick={() => handleRemoveFilter(filter.id)} className="btn btn-sm btn-danger" style={{ marginLeft: '0.25rem' }}>&times;</button>
                                 </div>))}
                                 <Select instanceId="itemle-final-select" options={filteredItemOptions} onChange={setSelectedItem} value={selectedItem} placeholder={`Select your guess (${filteredItemOptions.length} matching)...`} isDisabled={!itemType} isOptionDisabled={(option) => guessedItems.includes(option.value)} theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
                             </div>
                             <div className="d-flex justify-content-center align-items-center" style={{ gap: '1rem' }}>
-                                <button onClick={handleAddFilter} className="btn btn-secondary">+</button>
+                                <button onClick={() => handleAddFilter('include')} className="btn btn-secondary add-filter-btn" title="Add Include Filter">+</button>
+                                <button onClick={() => handleAddFilter('exclude')} className="btn btn-warning remove-filter-btn" title="Add Exclude Filter">-</button>
                                 <button onClick={handleGuess} className="btn btn-primary btn-lg" disabled={!selectedItem}>Guess Item</button>
                             </div>
                              {selectedItem && (<div className="text-center" style={{ animation: 'fadeIn 0.5s' }}><RenderItemTile itemKey={selectedItem.value} itemData={itemData} /></div>)}
@@ -460,6 +472,15 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                 }
                 .share-button, .endless-button { background-color: black; color: white; border: 2px solid white; border-radius: 0; padding: 0.5rem 1.5rem; }
                 .share-button:hover, .endless-button:hover { background-color: #333; color: white; border-color: white; }
+                .filter-row.exclude-filter { border-left: 4px solid #ffc107; padding-left: 0.5rem; border-radius: 4px; }
+                .add-filter-btn, .remove-filter-btn {
+                    width: 48px;
+                    height: 48px;
+                    font-size: 1.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
             `}</style>
         </div>
     )
