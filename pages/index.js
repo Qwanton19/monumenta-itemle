@@ -135,7 +135,7 @@ const filterCategoryOptions = [
 const forbiddenLocations = [
     "Challenger", "Divine Skin", "Eternity Skin", "Greed Skin", "Halloween Skin",
     "Holiday Skin", "Mythic Reliquary", "Remorseful Skin", "Royal Armory", "Sketched",
-    "Storied Skin", "Threadwarped Skin", "Titanic Skin", "True North"
+    "Storied Skin", "Threadwarped Skin", "Titanic Skin", "True North", "Arena of Terth"
 ];
 
 export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
@@ -162,7 +162,6 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
 
             return item.type &&
                    allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim()) &&
-                   item.location !== "Arena of Terth" &&
                    !isForbiddenInflation &&
                    !forbiddenLocations.includes(item.location);
         });
@@ -265,7 +264,23 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                 const isInclude = filter.type === 'include';
                 switch (filter.category) {
                     case 'enchant':
-                        items = items.filter(key => (itemData[key].stats?.[filter.value] !== undefined) === isInclude);
+                        const tierToMatch = filter.enchantTier && !isNaN(parseInt(filter.enchantTier, 10))
+                            ? parseInt(filter.enchantTier, 10)
+                            : null;
+                        items = items.filter(key => {
+                            const item = itemData[key];
+                            const hasEnchant = item.stats?.[filter.value] !== undefined;
+
+                            let conditionMet = false;
+                            if (hasEnchant) {
+                                if (tierToMatch !== null) {
+                                    conditionMet = item.stats[filter.value] === tierToMatch;
+                                } else {
+                                    conditionMet = true;
+                                }
+                            }
+                            return conditionMet === isInclude;
+                        });
                         break;
                     case 'material':
                         items = items.filter(key => (getMaterialCategory(itemData[key].base_item) === filter.value) === isInclude);
@@ -276,7 +291,11 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                 }
             }
         });
-        return items.map(key => ({ value: key, label: itemData[key].name })).sort((a, b) => a.label.localeCompare(b.label));
+        return items.map(key => ({
+            value: key,
+            label: itemData[key].name
+        })).sort((a, b) => a.label.localeCompare(b.label));
+
     }, [itemType, filters, itemData, possibleItemKeys]);
 
     const MAX_GUESSES = 6;
@@ -313,14 +332,17 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
     };
 
     const handleAddFilter = (type) => {
-        setFilters(prev => [...prev, { id: Date.now(), type, category: null, value: null }]);
+        setFilters(prev => [...prev, { id: Date.now(), type, category: null, value: null, enchantTier: '' }]);
     };
     const handleRemoveFilter = (id) => setFilters(prev => prev.filter(f => f.id !== id));
     const handleFilterChange = (id, field, value) => {
         setFilters(prev => prev.map(f => {
             if (f.id === id) {
                 const newFilter = { ...f, [field]: value };
-                if (field === 'category') newFilter.value = null;
+                if (field === 'category') {
+                    newFilter.value = null;
+                    newFilter.enchantTier = '';
+                }
                 return newFilter;
             }
             return f;
@@ -408,11 +430,41 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                             </h2>
                             <div className="d-flex flex-column" style={{ width: '100%', maxWidth: '600px', gap: '1rem' }}>
                                 <Select instanceId="itemle-item-type" options={itemTypeOptions} onChange={setItemType} value={itemType} placeholder="Select an Item Type..." theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
-                                {filters.map((filter) => (<div key={filter.id} className={`d-flex align-items-center filter-row ${filter.type === 'exclude' ? 'exclude-filter' : ''}`} style={{ gap: '0.5rem' }}>
-                                    <div style={{ flex: 1 }}><Select instanceId={`filter-cat-${filter.id}`} options={filterCategoryOptions} value={filterCategoryOptions.find(o => o.value === filter.category)} onChange={(opt) => handleFilterChange(filter.id, 'category', opt.value)} placeholder="Filter by..." theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} /></div>
-                                    <div style={{ flex: 2 }}><Select instanceId={`filter-val-${filter.id}`} options={allFilterValues[filter.category] || []} value={allFilterValues[filter.category]?.find(o => o.value === filter.value) || null} onChange={(opt) => handleFilterChange(filter.id, 'value', opt.value)} isDisabled={!filter.category} placeholder={filter.type === 'exclude' ? 'Exclude value...' : 'Include value...'} theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} /></div>
-                                    <button onClick={() => handleRemoveFilter(filter.id)} className="btn btn-sm btn-danger" style={{ marginLeft: '0.25rem' }}>&times;</button>
-                                </div>))}
+
+                                {filters.map((filter) => (
+                                    <div key={filter.id} className={`d-flex align-items-center filter-row ${filter.type === 'exclude' ? 'exclude-filter' : ''}`} style={{ gap: '0.5rem' }}>
+                                        <div style={{ flex: 1.5 }}>
+                                            <Select
+                                                instanceId={`filter-cat-${filter.id}`} options={filterCategoryOptions}
+                                                value={filterCategoryOptions.find(o => o.value === filter.category)}
+                                                onChange={(opt) => handleFilterChange(filter.id, 'category', opt.value)}
+                                                placeholder="Filter by..."
+                                                theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
+                                        </div>
+                                        <div style={{ flex: 2 }}>
+                                            <Select
+                                                instanceId={`filter-val-${filter.id}`} options={allFilterValues[filter.category] || []}
+                                                value={allFilterValues[filter.category]?.find(o => o.value === filter.value) || null}
+                                                onChange={(opt) => handleFilterChange(filter.id, 'value', opt.value)}
+                                                isDisabled={!filter.category}
+                                                placeholder={filter.type === 'exclude' ? 'Exclude value...' : 'Include value...'}
+                                                theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
+                                        </div>
+                                        {filter.category === 'enchant' && (
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                className="form-control enchant-tier-input"
+                                                placeholder="Tier"
+                                                value={filter.enchantTier}
+                                                onChange={(e) => handleFilterChange(filter.id, 'enchantTier', e.target.value)}
+                                                style={{ width: '80px' }}
+                                            />
+                                        )}
+                                        <button onClick={() => handleRemoveFilter(filter.id)} className="btn btn-sm btn-danger" style={{ marginLeft: '0.25rem' }}>&times;</button>
+                                    </div>
+                                ))}
+
                                 <Select instanceId="itemle-final-select" options={filteredItemOptions} onChange={setSelectedItem} value={selectedItem} placeholder={`Select your guess (${filteredItemOptions.length} matching)...`} isDisabled={!itemType} isOptionDisabled={(option) => guessedItems.includes(option.value)} theme={theme => ({ ...theme, borderRadius: 0, colors: { ...theme.colors, primary: "#bbbbbb", primary25: "#2a2a2a", neutral0: "black", neutral80: "white" }})} />
                             </div>
                             <div className="d-flex justify-content-center align-items-center" style={{ gap: '1rem' }}>
@@ -481,6 +533,18 @@ export default function Itemle({ itemData, dailyItemKey, itemleDayNumber }) {
                     align-items: center;
                     justify-content: center;
                 }
+                .enchant-tier-input {
+                    background-color: black !important;
+                    color: white !important;
+                    border: 1px solid hsl(0, 0%, 80%) !important;
+                    border-radius: 0 !important;
+                    text-align: center;
+                    height: 38px;
+                }
+                .enchant-tier-input:focus {
+                    border-color: #bbbbbb !important;
+                    box-shadow: none !important;
+                }
             `}</style>
         </div>
     )
@@ -537,7 +601,6 @@ export async function getServerSideProps(context) {
 
         return item.type &&
                allWearableTypes.includes(item.type.toLowerCase().replace(/<.*>/, "").trim()) &&
-               item.location !== "Arena of Terth" &&
                !isForbiddenInflation &&
                !forbiddenLocations.includes(item.location);
     });
